@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <PathDelim Value="\"/>
+    <Version Value="10"/>
+    <BuildModes Active="Default"/>
+    <Units Count="1">
+      <Unit0>
+        <Filename Value="pprime.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
+        <TopLine Value="25"/>
+        <CursorPos X="3" Y="43"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit0>
+    </Units>
+    <JumpHistory Count="7" HistoryIndex="6">
+      <Position1>
+        <Filename Value="pprime.lpr"/>
+        <Caret Line="27" Column="64"/>
+      </Position1>
+      <Position2>
+        <Filename Value="pprime.lpr"/>
+        <Caret Line="5" Column="17"/>
+      </Position2>
+      <Position3>
+        <Filename Value="pprime.lpr"/>
+        <Caret Line="46" Column="24" TopLine="11"/>
+      </Position3>
+      <Position4>
+        <Filename Value="pprime.lpr"/>
+        <Caret Line="45" Column="23" TopLine="12"/>
+      </Position4>
+      <Position5>
+        <Filename Value="pprime.lpr"/>
+        <Caret Line="37" Column="55" TopLine="13"/>
+      </Position5>
+      <Position6>
+        <Filename Value="pprime.lpr"/>
+        <Caret Line="8" Column="25" TopLine="4"/>
+      </Position6>
+      <Position7>
+        <Filename Value="pprime.lpr"/>
+        <Caret Line="41" Column="44" TopLine="22"/>
+      </Position7>
+    </JumpHistory>
+  </ProjectSession>
+</CONFIG>
