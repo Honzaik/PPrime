@@ -2,45 +2,80 @@ program pprime;
 
 uses DateUtils, sysutils;
 
-type prvocislo = array [1..200] of byte;
-type vysledek = record
+type dlouheCislo = array [1..200] of byte;
+type cisloT = record
+     cislo : dlouheCislo;
+     delka : byte;
+end;
+type vysledekFaktorizace = record
      exponent : integer;
-     zbytek : prvocislo;
+     zbytek : cisloT;
+end;
+type vysledekDeleni = record
+     vysl : cisloT;
+     zbytek : byte;
 end;
 
-function generujPrvocislo(delka : byte) : prvocislo;
-var p : prvocislo;
-var i, j, zbytek : byte;
-var randomNumber : longint;
+function generujPrvocislo(delka : byte) : cisloT;
+var p : cisloT;
+var i : byte;
 var lichaCisla : array[1..5] of byte = (1,3,5,7,9);
 begin
-  {zbytek := delka mod 9;
-  for i := 0 to ((delka div 9) - 1) do
+  p.cislo[1] := Random(9) + 1;
+  for i := 2 to delka do
   begin
-       randomNumber := Random(1000000000);
-       p[9*i + 1] := randomNumber mod 10;
-       for j:=2 to 9 do
-       begin
-            p[9*i + j] := (randomNumber div (10*(j-1))) mod 10;
-       end;
+    if(i <> delka) then p.cislo[i] := Random(10)
+    else p.cislo[delka] := lichaCisla[Random(5)+1];
   end;
-  for i := 1 to zbytek do
-  begin
-       if(i <> zbytek) then p[(delka div 9) * 9 + i] := Random(10)
-       else p[(delka div 9) * 9 + i] := lichaCisla[Random(5)+1];
-  end;
-  generujPrvocislo := p;}
-  for i :=1 to delka do
-  begin
-    if(i <> delka) then p[i] := Random(10)
-    else p[delka] := lichaCisla[Random(5)+1];
-  end;
+  p.delka := delka;
   generujPrvocislo := p;
 end;
 
-function factor(p : prvocislo; delka : byte) : vysledek;
+function vydelDvema(p : cisloT) : vysledekDeleni;
+var i, j, akt : byte;
+var vysledek : vysledekDeleni;
 begin
+     for i := 1 to 200 do vysledek.vysl.cislo[i] := 0;
+     vysledek.zbytek := 0;
+     j := 1;
+     for i := 1 to p.delka do
+     begin
+         akt := vysledek.zbytek*10 + p.cislo[i];
+         if((akt div 2) = 0) then
+         begin
+              vysledek.zbytek := akt;
+              if(i > 1) then
+              begin
+                   vysledek.vysl.cislo[j] := 0;
+                   inc(j);
+              end;
+         end
+         else
+         begin
+           vysledek.zbytek := akt mod 2;
+           vysledek.vysl.cislo[j] := akt div 2;
+           inc(j);
+         end;
+     end;
+     vysledek.vysl.delka := j-1;
+     vydelDvema := vysledek;
+end;
 
+function factor(p : cisloT) : vysledekFaktorizace;
+var vyslD : vysledekDeleni;
+var vyslF : vysledekFaktorizace;
+begin
+     p.cislo[p.delka] := p.cislo[p.delka] - 1;
+     vyslF.exponent := 0;
+     vyslF.zbytek := p;
+     vyslD := vydelDvema(p);
+     while((vyslD.zbytek = 0) and ((vyslD.vysl.delka <> 1) or (vyslD.vysl.cislo[1] <> 0))) do
+     begin
+          inc(vyslF.exponent);
+          vyslF.zbytek := vyslD.vysl;
+          vyslD := vydelDvema(vyslD.vysl);
+     end;
+     factor := vyslF;
 end;
 
 {function isPrime(p : prvocislo; spolehlivost : integer) : boolean;
@@ -49,7 +84,9 @@ begin
 end;}
 
 var pocetCifer, pocetPrvocisel, i : byte;
-var p : prvocislo;
+var p : cisloT;
+var d : vysledekDeleni;
+var faktory : vysledekFaktorizace;
 var
   FromTime, ToTime: TDateTime;
   DiffMinutes: Integer;
@@ -60,6 +97,19 @@ begin
   write('Kolik ruznych prvocisel: ');
   readln(pocetPrvocisel);
   p := generujPrvocislo(pocetCifer);
-  for i:=1 to pocetCifer do write(p[i]);
+  for i:=1 to pocetCifer do write(p.cislo[i]);
+
+  writeln;
+
+  d := vydelDvema(p);
+  writeln(d.vysl.delka, ' ', d.zbytek);
+  for i:=1 to d.vysl.delka do write(d.vysl.cislo[i]);
+
+  writeln;
+
+  faktory := factor(p);
+  writeln(faktory.exponent, ' ', faktory.zbytek.delka);
+  for i:=1 to faktory.zbytek.delka do write(faktory.zbytek.cislo[i]);
+
 end.
 
