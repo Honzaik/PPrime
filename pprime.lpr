@@ -30,6 +30,46 @@ begin
   p.delka := delka;
   generujPrvocislo := p;
 end;
+{
+1 : c1>c2
+0 : c1=c2
+2 : c1<c2
+}
+function porovnani(c1, c2 : cisloT) : byte;
+var i : byte;
+begin
+     if(c1.delka > c2.delka) then porovnani := 1
+     else
+     begin
+          if(c1.delka < c2.delka) then porovnani := 2
+          else //stejna delka
+          begin
+               i := 1;
+               while((c1.cislo[i] = c2.cislo[i]) and (i <= 200)) do inc(i);
+               if(i = 201) then porovnani := 0
+               else
+               begin
+                    if(c1.cislo[i] > c2.cislo[i]) then porovnani := 1
+                    else porovnani := 2;
+               end;
+          end;
+     end;
+end;
+
+function generujNahodneCislo(horniHranice : cisloT) : cisloT;
+var i : byte;
+var nahodneCislo : cisloT;
+begin
+  repeat
+    nahodneCislo.delka := Random(horniHranice.delka) + 1;
+    nahodneCislo.cislo[1] := Random(9) + 1;
+    for i := 2 to nahodneCislo.delka do
+    begin
+         nahodneCislo.cislo[i] := Random(10);
+    end;
+  until ((porovnani(horniHranice, nahodneCislo) = 1) and ((nahodneCislo.delka > 1) or (nahodneCislo.cislo[1] > 1))); //2<=n<hodniHranice
+  generujNahodneCislo := nahodneCislo;
+end;
 
 function vydelDvema(p : cisloT) : vysledekDeleni;
 var i, j, akt : byte;
@@ -79,7 +119,7 @@ begin
 end;
 
 var pocetCifer, pocetPrvocisel, i : byte;
-var p : cisloT;
+var p, nahodne, pMensi : cisloT;
 var d : vysledekDeleni;
 var faktory : vysledekFaktorizace;
 var
@@ -106,5 +146,12 @@ begin
   writeln(faktory.exponent, ' ', faktory.zbytek.delka);
   for i:=1 to faktory.zbytek.delka do write(faktory.zbytek.cislo[i]);
 
+  writeln;
+
+  pMensi := p;
+  pMensi.cislo[pMensi.delka] := pMensi.cislo[pMensi.delka] - 1;
+  nahodne := generujNahodneCislo(pMensi);
+  writeln(nahodne.delka);
+  for i:=1 to nahodne.delka do write(nahodne.cislo[i]);
 end.
 
