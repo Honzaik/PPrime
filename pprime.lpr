@@ -245,6 +245,24 @@ begin
      }
 end;
 
+procedure remAndQ(numerator, divisor : cisloT; var multiplier, difference : cisloT);
+var dynamicNum, jedna, prevDiff : cisloT;
+begin
+     jedna.delka := 1;
+     jedna.cislo[1] := 1;
+     multiplier := jedna;
+     difference := odecti(numerator, divisor, true);
+     dynamicNum.delka := 0;
+     vynuluj(dynamicNum);
+     while porovnani(difference,divisor) <> 2 do
+     begin
+         multiplier := secti(multiplier, jedna, true);
+         dynamicNum := vynasob(divisor, multiplier);
+         difference := odecti(numerator, dynamicNum, true);
+     end;
+     difference := odecti(dynamicNum, numerator, true);
+end;
+
 function vydelDvema(p : cisloT) : vysledekDeleni;
 var i, j : integer;
 var akt : byte;
@@ -294,7 +312,7 @@ begin
 end;
 
 var pocetCifer, pocetPrvocisel, i : integer;
-var p, nahodne, pMensi, soucet, nasobek : cisloT;
+var p, nahodne, pMensi, soucet, nasobek, multi, diff, jedna : cisloT;
 var d : vysledekDeleni;
 var faktory : vysledekFaktorizace;
 var
@@ -337,7 +355,13 @@ begin
   }
   //nasobek := odecti(nahodne, p, true);
   //vypisCislo(nasobek);
-  nasobek := modulus(p, nahodne);
-  vypisCislo(nasobek);
+  //nasobek := modulus(p, nahodne);
+  remAndQ(p, nahodne, multi, diff);
+  writeln;
+  writeln('multiplier');
+  vypisCislo(multi);
+  writeln;
+  writeln('quotient');
+  vypisCislo(diff);
 end.
 
