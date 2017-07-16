@@ -276,11 +276,12 @@ begin
      vysledek.vysl.delka := j-1;
      vydelDvema := vysledek;
 end;
-
+{
 procedure remAndQ(divident, divisor : cisloT; var multiplier, difference : cisloT);
-var jedna, dva, endValue, bitsToSet : cisloT;
-var number : longint;
+var jedna, dva, endValue, bitsToSet, divident2 : cisloT;
 begin
+  divident2 := divident;
+
   multiplier.delka := 0;
   vynuluj(multiplier);
 
@@ -296,7 +297,6 @@ begin
 
   bitsToSet.delka := 0;
   vynuluj(bitsToSet);
-  number := 0;
   while (porovnani(divident, divisor) <> 2) do
   begin
        difference := divisor;
@@ -310,6 +310,44 @@ begin
        multiplier := secti(multiplier, bitsToSet, true);
        divident := odecti(divident, difference, true);
   end;
+  difference := odecti(divident2, vynasob(multiplier, divisor), true);
+end;
+}
+
+function modulo(divident, divisor : cisloT) : cisloT;
+var jedna, dva, endValue, bitsToSet, divident2, q, difference : cisloT;
+begin
+  divident2 := divident;
+
+  q.delka := 0;
+  vynuluj(q);
+
+  dva.delka := 0;
+  vynuluj(dva);
+  dva.delka := 1;
+  dva.cislo[1] := 2;
+
+  jedna.delka := 0;
+  vynuluj(jedna);
+  jedna.delka := 1;
+  jedna.cislo[1] := 1;
+
+  bitsToSet.delka := 0;
+  vynuluj(bitsToSet);
+  while (porovnani(divident, divisor) <> 2) do
+  begin
+       difference := divisor;
+       bitsToSet := jedna;
+       endValue := vydelDvema(divident).vysl;
+       while (porovnani(endValue, difference) <> 2) do
+       begin
+           difference := vynasob(difference, dva);
+           bitsToSet := vynasob(bitsToSet, dva);
+       end;
+       q := secti(q, bitsToSet, true);
+       divident := odecti(divident, difference, true);
+  end;
+  modulo := odecti(divident2, vynasob(q, divisor), true);
 end;
 
 function factor(p : cisloT) : vysledekFaktorizace;
@@ -329,8 +367,36 @@ begin
      factor := vyslF;
 end;
 
+function modular_pow(base, exponent, modulus : cisloT) : cisloT;
+var vysledek : cisloT;
+var temp : vysledekDeleni;
+begin
+  if ((modulus.delka = 1) and (modulus.cislo[1] = 1)) then
+  begin
+       vysledek.delka := 0;
+       vynuluj(vysledek);
+       modular_pow := vysledek;
+       exit;
+  end;
+  vysledek.delka := 1;
+  vysledek.cislo[1] := 1;
+  vynuluj(vysledek);
+  base := modulo(base, modulus);
+  while exponent.delka > 0 do
+  begin
+      temp := vydelDvema(exponent);
+      if (temp.zbytek = 1) then
+      begin
+           vysledek := modulo(vynasob(vysledek, base), modulus);
+      end;
+      exponent := temp.vysl;
+      base := modulo((vynasob(base,base)), modulus);
+  end;
+  modular_pow := vysledek;
+end;
+
 var pocetCifer, pocetPrvocisel, i : integer;
-var p, nahodne, pMensi, soucet, nasobek, multi, diff, jedna : cisloT;
+var p, nahodne, pMensi, x : cisloT;
 var d : vysledekDeleni;
 var faktory : vysledekFaktorizace;
 var
@@ -345,42 +411,21 @@ begin
   p := generujPrvocislo(pocetCifer);
   vynuluj(p);
   vypisCislo(p);
-  {
-  writeln;
-  d := vydelDvema(p);
-  writeln(d.vysl.delka, ' ', d.zbytek);
-  for i:=1 to d.vysl.delka do write(d.vysl.cislo[i]);
 
-  writeln;
-
-  faktory := factor(p);
-  writeln(faktory.exponent, ' ', faktory.zbytek.delka);
-  for i:=1 to faktory.zbytek.delka do write(faktory.zbytek.cislo[i]);
-  }
   pMensi := p;
   pMensi.cislo[pMensi.delka] := pMensi.cislo[pMensi.delka] - 1;
   vynuluj(pMensi);
+
+  faktory := factor(p);
+  writeln('2^',faktory.exponent);
+  vypisCislo(faktory.zbytek);
+  writeln('nahodne');
   nahodne := generujNahodneCislo(pMensi);
   vynuluj(nahodne);
   vypisCislo(nahodne);
-  {
-  soucet := secti(p, pMensi);
-  vypisCislo(soucet);
-  }
-  {
-  nasobek := vynasob(p, nahodne);
-  vypisCislo(nasobek);
-  }
-  //nasobek := odecti(nahodne, p, true);
-  //vypisCislo(nasobek);
-  //nasobek := modulus(p, nahodne);
-  remAndQ(p, nahodne, multi, diff);
-  //multi := odecti(p, nahodne, true);
-  writeln;
-  writeln('multi');
-  vypisCislo(multi);
-  writeln;
-  writeln('diff');
-  vypisCislo(diff);
+
+  x := modular_pow(nahodne, faktory.zbytek, p);
+  vypisCislo(x);
+
 end.
 
