@@ -27,6 +27,7 @@ begin
      writeln('delka : ', c.delka);
      for i := 1 to c.delka do write(c.cislo[i]);
      writeln;
+     writeln;
 end;
 
 function generujPrvocislo(delka : byte) : cisloT;
@@ -214,8 +215,8 @@ begin
          end
          else
          begin
-             zb := 0;
              vysledek.cislo[i] := c1.cislo[i] - (c2.cislo[i]+zb);
+             zb := 0;
          end;
          if(vysledek.cislo[i] <> 0) then vysledek.delka := i;
      end;
@@ -243,24 +244,6 @@ begin
           else modulus := pred;
      end;
      }
-end;
-
-procedure remAndQ(numerator, divisor : cisloT; var multiplier, difference : cisloT);
-var dynamicNum, jedna, prevDiff : cisloT;
-begin
-     jedna.delka := 1;
-     jedna.cislo[1] := 1;
-     multiplier := jedna;
-     difference := odecti(numerator, divisor, true);
-     dynamicNum.delka := 0;
-     vynuluj(dynamicNum);
-     while porovnani(difference,divisor) <> 2 do
-     begin
-         multiplier := secti(multiplier, jedna, true);
-         dynamicNum := vynasob(divisor, multiplier);
-         difference := odecti(numerator, dynamicNum, true);
-     end;
-     difference := odecti(dynamicNum, numerator, true);
 end;
 
 function vydelDvema(p : cisloT) : vysledekDeleni;
@@ -292,6 +275,41 @@ begin
      end;
      vysledek.vysl.delka := j-1;
      vydelDvema := vysledek;
+end;
+
+procedure remAndQ(divident, divisor : cisloT; var multiplier, difference : cisloT);
+var jedna, dva, endValue, bitsToSet : cisloT;
+var number : longint;
+begin
+  multiplier.delka := 0;
+  vynuluj(multiplier);
+
+  dva.delka := 0;
+  vynuluj(dva);
+  dva.delka := 1;
+  dva.cislo[1] := 2;
+
+  jedna.delka := 0;
+  vynuluj(jedna);
+  jedna.delka := 1;
+  jedna.cislo[1] := 1;
+
+  bitsToSet.delka := 0;
+  vynuluj(bitsToSet);
+  number := 0;
+  while (porovnani(divident, divisor) <> 2) do
+  begin
+       difference := divisor;
+       bitsToSet := jedna;
+       endValue := vydelDvema(divident).vysl;
+       while (porovnani(endValue, difference) <> 2) do
+       begin
+           difference := vynasob(difference, dva);
+           bitsToSet := vynasob(bitsToSet, dva);
+       end;
+       multiplier := secti(multiplier, bitsToSet, true);
+       divident := odecti(divident, difference, true);
+  end;
 end;
 
 function factor(p : cisloT) : vysledekFaktorizace;
@@ -357,11 +375,12 @@ begin
   //vypisCislo(nasobek);
   //nasobek := modulus(p, nahodne);
   remAndQ(p, nahodne, multi, diff);
+  //multi := odecti(p, nahodne, true);
   writeln;
-  writeln('multiplier');
+  writeln('multi');
   vypisCislo(multi);
   writeln;
-  writeln('quotient');
+  writeln('diff');
   vypisCislo(diff);
 end.
 
