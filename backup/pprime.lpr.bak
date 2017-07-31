@@ -697,8 +697,8 @@ begin
        inc(pocetVygenerovanych);
        p := generujPrvocislo(pocetCifer);
        vynuluj(p);
-       write(pocetVygenerovanych);
-       if(isPrime(p, 2) = true) then generuj := false;
+       write(pocetVygenerovanych, ' ');
+       if(isPrime(p, 1) = true) then generuj := false;
   end;
 
 

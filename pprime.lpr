@@ -67,7 +67,7 @@ type
       if (i <> delka) then
         p.cislo[i] := Random(10)
       else
-        p.cislo[delka] := lichaCisla[Random(5) + 1];
+        p.cislo[delka] := lichaCisla[Random(4) + 1];
     end;
     p.delka := delka;
     generujPrvocislo := p;
@@ -698,7 +698,7 @@ begin
        p := generujPrvocislo(pocetCifer);
        vynuluj(p);
        write(pocetVygenerovanych, ' ');
-       if(isPrime(p, 2) = true) then generuj := false;
+       if(isPrime(p, 1) = true) then generuj := false;
   end;
 
 
