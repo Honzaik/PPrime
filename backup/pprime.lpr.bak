@@ -387,7 +387,6 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
   end;
 
   function vydel2(c1, c2: cisloT): vysledekDeleni2;
-  //vyborny akorat nefunguje ve vsech pripadech když nejake cislo je vetsi nez base
   var
     vysl: vysledekDeleni2;
   var
@@ -415,7 +414,8 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
       if (c1.cislo[i + 1] = c2.cislo[c2.delka]) then vysl.quot.cislo[i-t] := 9
       else
       begin
-           vysl.quot.cislo[i-t] := (c1.cislo[i+1]*10 + c1.cislo[i]) div c2.cislo[c2.delka];
+           //vysl.quot.cislo[i-t] := (c1.cislo[i+1]*10 + c1.cislo[i]) div c2.cislo[c2.delka]; //normalizace - rychlejsi
+           vysl.quot.cislo[i-t] := (c1.cislo[i+1]*100 + c1.cislo[i]*10 + c1.cislo[i-1]) div (c2.cislo[c2.delka]*10+c2.cislo[t]);
       end;
       longTemp := vysl.quot.cislo[i-t]*(c2.cislo[c2.delka]*10 + c2.cislo[t]);
       longTemp2 := c1.cislo[i+1]*100+c1.cislo[i]*10+c1.cislo[i-1];
@@ -642,7 +642,11 @@ begin
   n2.cislo[1] := 9;
   //p := n1;
   //nahodne := n2;
+  FromTime := Now;
   d2 := vydel2(p, nahodne);
+  ToTime := Now;
+  DiffMinutes := MilliSecondsBetween(ToTime, FromTime);
+  writeln(DiffMinutes, ' ms');
   //x := odecti(p, nahodne, true);
   //writeln('prev delka: ', d2.quot.delka);
   //d2.quot.delka := 30;
