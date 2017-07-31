@@ -33,12 +33,14 @@ type
   end;
 
 
-  procedure vypisCislo(c: cisloT; writeDelka : boolean; msg : string);
+  procedure vypisCislo(c: cisloT; writeDelka: boolean; msg: string);
   var
     i: integer;
   begin
-    if(writeDelka) then writeln('delka : ', c.delka);
-    if(length(msg) > 0) then write(msg, ': ');
+    if (writeDelka) then
+      writeln('delka : ', c.delka);
+    if (length(msg) > 0) then
+      Write(msg, ': ');
     for i := 1 to c.delka do
     begin
       if (c.cislo[i] > 9) then
@@ -265,7 +267,8 @@ citelnyFormat := false;
       vynasob := vysl;
   end;
 
-  function vynasobDeseti(c1: cisloT; kolikrat: integer): cisloT; {dolni jsou nejmensi <=> citelnyFormat = false}
+  function vynasobDeseti(c1: cisloT; kolikrat: integer): cisloT;
+    {dolni jsou nejmensi <=> citelnyFormat = false}
   var
     i: integer;
   begin
@@ -347,7 +350,7 @@ citelnyFormat := false;
       odecti := vysledek;
   end;
 
-  function vydel(c1, c2: cisloT; jeCitelnyFormat : boolean): vysledekDeleni;
+  function vydel(c1, c2: cisloT; jeCitelnyFormat: boolean): vysledekDeleni;
   var
     vysl: vysledekDeleni;
   var
@@ -363,10 +366,10 @@ citelnyFormat := false;
     vynuluj(vysl.rem);
     vynasobeneDeseti.delka := 0;
     vynuluj(vynasobeneDeseti);
-    if(jeCitelnyFormat) then
+    if (jeCitelnyFormat) then
     begin
-         c1 := otocCislo(c1);  //prevede na tvar kde na 1. indexu je nejmensi
-         c2 := otocCislo(c2);
+      c1 := otocCislo(c1);  //prevede na tvar kde na 1. indexu je nejmensi
+      c2 := otocCislo(c2);
     end;
     vynuluj(c1);
     vynuluj(c2);
@@ -394,8 +397,8 @@ citelnyFormat := false;
       while (longTemp > longTemp2) do
       begin
         vysl.quot.cislo[i - t] := vysl.quot.cislo[i - t] - 1;
-        longTemp := vysl.quot.cislo[i - t] * (c2.cislo[c2.delka] * 10 +
-          c2.cislo[c2.delka - 1]);
+        longTemp := vysl.quot.cislo[i - t] * (c2.cislo[c2.delka] *
+          10 + c2.cislo[c2.delka - 1]);
       end;
       vynasobeneDeseti := vynasobDeseti(c2, i - t - 1);
       temp.delka := 1;
@@ -417,24 +420,25 @@ citelnyFormat := false;
       end;
     end;
     vysl.rem := c1;
-    if(jeCitelnyFormat) then //prevede na tvar kde na 1. indexu je nejvetsi
+    if (jeCitelnyFormat) then //prevede na tvar kde na 1. indexu je nejvetsi
     begin
-         vysl.rem := otocCislo(vysl.rem);
-         vysl.quot := otocCislo(vysl.quot);
+      vysl.rem := otocCislo(vysl.rem);
+      vysl.quot := otocCislo(vysl.quot);
     end;
     vydel := vysl;
   end;
 
-function modulo(c1, c2: cisloT; jeCitelnyFormat : boolean): cisloT;
+  function modulo(c1, c2: cisloT; jeCitelnyFormat: boolean): cisloT;
   var
     vynasobeneDeseti, temp: cisloT;
   var
     t, n, i: integer;
   var
     longTemp, longTemp2: longint;
-  var q : byte;
+  var
+    q: byte;
   begin
-    if(jeCitelnyFormat) then
+    if (jeCitelnyFormat) then
     begin
       c1 := otocCislo(c1);  //prevede na tvar kde na 1. indexu je nejmensi
       c2 := otocCislo(c2);
@@ -461,17 +465,18 @@ function modulo(c1, c2: cisloT; jeCitelnyFormat : boolean): cisloT;
       while (longTemp > longTemp2) do
       begin
         q := q - 1;
-        longTemp := q * (c2.cislo[c2.delka] * 10 +
-          c2.cislo[c2.delka - 1]);
+        longTemp := q * (c2.cislo[c2.delka] * 10 + c2.cislo[c2.delka - 1]);
       end;
       vynasobeneDeseti := vynasobDeseti(c2, i - t - 1);
       temp.delka := 1;
       temp.cislo[1] := q;
       temp := vynasob(temp, vynasobeneDeseti, False);
       c1 := odecti(c1, temp, False);
-      if (c1.isNegative = True) then c1 := odecti(vynasobeneDeseti, c1, False);
+      if (c1.isNegative = True) then
+        c1 := odecti(vynasobeneDeseti, c1, False);
     end;
-    if(jeCitelnyFormat) then c1 := otocCislo(c1);
+    if (jeCitelnyFormat) then
+      c1 := otocCislo(c1);
     modulo := c1;
   end;
 
@@ -531,7 +536,7 @@ function modulo(c1, c2: cisloT; jeCitelnyFormat : boolean): cisloT;
     factor := vyslF;
   end;
 
-  function square(c1: cisloT; jeCitelnyFormat : boolean): cisloT;
+  function square(c1: cisloT; jeCitelnyFormat: boolean): cisloT;
   var
     vysl: cisloT;
   var
@@ -539,7 +544,8 @@ function modulo(c1, c2: cisloT; jeCitelnyFormat : boolean): cisloT;
   begin
     vysl.delka := 0;
     vynuluj(vysl);
-    if(jeCitelnyFormat) then c1 := otocCislo(c1);
+    if (jeCitelnyFormat) then
+      c1 := otocCislo(c1);
     for i := 0 to (c1.delka - 1) do
     begin
       temp := vysl.cislo[2 * i + 1] + (c1.cislo[i + 1] * c1.cislo[i + 1]);
@@ -557,22 +563,23 @@ function modulo(c1, c2: cisloT; jeCitelnyFormat : boolean): cisloT;
       vysl.delka := c1.delka * 2
     else
       vysl.delka := c1.delka * 2 - 1;
-    if(jeCitelnyFormat) then vysl := otocCislo(vysl);
+    if (jeCitelnyFormat) then
+      vysl := otocCislo(vysl);
     square := vysl;
   end;
 
-  function modular_pow(base, exponent, modulus: cisloT; jeCitelnyFormat : boolean): cisloT;
+  function modular_pow(base, exponent, modulus: cisloT;
+    jeCitelnyFormat: boolean): cisloT;
   var
     vysledek, dva: cisloT;
   var
     tempDeleni: vysledekDeleni;
-  var pocet : integer;
   begin
-    if(jeCitelnyFormat) then
+    if (jeCitelnyFormat) then
     begin
-         base := otocCislo(base);
-         exponent := otocCislo(exponent);
-         modulus := otocCislo(modulus);
+      base := otocCislo(base);
+      exponent := otocCislo(exponent);
+      modulus := otocCislo(modulus);
     end;
     if ((modulus.delka = 1) and (modulus.cislo[1] = 1)) then
     begin
@@ -587,81 +594,120 @@ function modulo(c1, c2: cisloT; jeCitelnyFormat : boolean): cisloT;
     dva.cislo[1] := 2;
     vynuluj(dva);
     vynuluj(vysledek);
-    base := modulo(base, modulus, false);
-    vypisCislo(otocCislo(base), false, 'base first');
-    pocet := 0;
+    base := modulo(base, modulus, False);
     while exponent.delka > 0 do
     begin
-      inc(pocet);
-      tempDeleni := vydel(exponent, dva, false);
+      tempDeleni := vydel(exponent, dva, False);
       if (tempDeleni.rem.delka = 1) then
       begin
-        vysledek := modulo(vynasob(vysledek, base, false), modulus, false);
+        vysledek := modulo(vynasob(vysledek, base, False), modulus, False);
       end;
-      base := modulo(square(base, false), modulus, false);
+      base := modulo(square(base, False), modulus, False);
       exponent := tempDeleni.quot;
     end;
-    writeln('pocet iteraci: ', pocet);
     modular_pow := vysledek;
   end;
 
-function stringToCislo(s : string) : cisloT;
-var i : integer;
-var value : byte;
-var vysl : cisloT;
-begin
-     vysl.delka := length(s);
-     for i := length(s) downto 1 do
-     begin
-          Val(s[i], value);
-          vysl.cislo[i] := value;
-     end;
-     stringToCislo := vysl;
-end;
+  function stringToCislo(s: string): cisloT;
+  var
+    i: integer;
+  var
+    Value: byte;
+  var
+    vysl: cisloT;
+  begin
+    vysl.delka := length(s);
+    for i := length(s) downto 1 do
+    begin
+      Val(s[i], Value);
+      vysl.cislo[i] := Value;
+    end;
+    stringToCislo := vysl;
+  end;
+
+  function isPrime(p: cisloT; k: byte): boolean;
+  var
+    nahodne, pMensi, x, otoceneP, otoceneMensi: cisloT;
+  var
+    i, j: integer;
+  var
+    pokracuj: boolean;
+  var
+    faktory: vysledekFaktorizace;
+  begin
+    otoceneP := otocCislo(p); //necitelne
+    vynuluj(otoceneP);
+    pMensi := p;
+    vynuluj(pMensi);
+    pMensi.cislo[pMensi.delka] := pMensi.cislo[pMensi.delka] - 1;
+    otoceneMensi := otocCislo(pMensi);
+    vynuluj(otoceneMensi);
+    faktory.zbytek.delka := 0;
+    vynuluj(faktory.zbytek);
+    faktory.exponent := 0;
+    faktory := factor(p);
+    for i := 1 to k do
+    begin
+      pokracuj := False;
+      nahodne := generujNahodneCislo(pMensi);
+      vynuluj(nahodne);
+      x := modular_pow(nahodne, faktory.zbytek, p, True);
+      if (((x.delka = 1) and (x.cislo[1] = 1)) or (porovnani2(otoceneMensi, x) = 0)) then
+      begin
+        Continue;
+      end;
+      for j := 1 to (faktory.exponent - 1) do
+      begin
+        x := modulo(square(x, False), otoceneP, False);
+        if ((x.delka = 1) and (x.cislo[1] = 1)) then
+        begin
+          exit(False);
+        end;
+        if ((porovnani2(otoceneMensi, x) = 0)) then
+        begin
+          pokracuj := True;
+          break;
+        end;
+      end;
+      if (not pokracuj) then
+      begin
+        exit(False);
+      end;
+    end;
+    writeln;
+    vypisCislo(p, True, 'je prvocislo ');
+    isPrime := True;
+  end;
 
 var
-  pocetCifer, pocetPrvocisel, i: integer;
+  pocetCifer, pocetPrvocisel, pocetVygenerovanych : integer;
 var
-  p, nahodne, pMensi, x, n1, n2: cisloT;
-var
-  d2: vysledekDeleni;
-var
-  faktory: vysledekFaktorizace;
-var
-  FromTime, ToTime: TDateTime;
-  DiffMinutes: integer;
+  p : cisloT;
+var generuj : boolean;
 begin
   Randomize;
   Write('Kolik cifer: ');
   readln(pocetCifer);
   Write('Kolik ruznych prvocisel: ');
   readln(pocetPrvocisel);
-  pocetCifer := 4;
-  p := generujPrvocislo(pocetCifer);
-  vynuluj(p);
+  generuj := true;
+  pocetVygenerovanych := 0;
+  while generuj do
+  begin
+       inc(pocetVygenerovanych);
+       p := generujPrvocislo(pocetCifer);
+       vynuluj(p);
+       write(pocetVygenerovanych);
+       if(isPrime(p, 2) = true) then generuj := false;
+  end;
 
 
-  pMensi := p;
-  pMensi.cislo[pMensi.delka] := pMensi.cislo[pMensi.delka] - 1;
-  vynuluj(pMensi);
 
-  faktory := factor(p);
+
   //writeln('2^', faktory.exponent);
-  nahodne := generujNahodneCislo(pMensi);
-  vynuluj(nahodne);
+
   //p := stringToCislo('380945753938809950151287337354146772520603275837293698990528362172443175624566631917411093955959497847751482624457225761');
   //faktory.zbytek := stringToCislo('11904554810587810942227729292317086641268852369915428093454011317888849238267707247419096686123734307742233832014288305');
-  //nahodne := stringToCislo('954449137391');
-  FromTime := Now;
-  x := modular_pow(nahodne, faktory.zbytek, p, true);
-  ToTime := Now;
-  DiffMinutes := MilliSecondsBetween(ToTime, FromTime);
-  vypisCislo(p, true, 'p');
-  vypisCislo(faktory.zbytek, true, 'zbytek');
-  vypisCislo(nahodne, true, 'nahodne');
-
-  writeln('time: ', DiffMinutes, ' ms');
-  vypisCislo(otocCislo(x), true, '');
   {n1 := stringToCislo('186008668915434545972308270192454478769825818279928563960218926842013269347932925740923385720683348558472403625223254');
   n2.delka := 1;
   n2.cislo[1] := 2;
@@ -677,7 +723,5 @@ begin
   d2 := vydel2(n2,n1, false);
   vypisCislo(otocCislo(d2.quot));
   vypisCislo(otocCislo(d2.rem)); }
-
-
 
 end.
