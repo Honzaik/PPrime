@@ -14,6 +14,7 @@ type
   cisloT = record
     cislo: dlouheCislo;
     delka: integer;
+    isNegative : boolean;
   end;
 type
   vysledekFaktorizace = record
@@ -337,9 +338,9 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
 
   function odecti(c1, c2: cisloT; otoc: boolean): cisloT;
   var
-    vysledek: cisloT;
+    vysledek, temp: cisloT;
   var
-    delka, i, posledniNenul, porov, zb: integer;
+    delka, i, porov, zb: integer;
   begin
     vysledek.delka := 0;
     vynuluj(vysledek);
@@ -350,31 +351,35 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
       c2 := otocCislo(c2);
     end;
     porov := porovnani2(c1, c2);
-    if (porov = 1) then
-      delka := c1.delka
-    else
-    begin
       if (porov = 0) then
-        vysledek.delka := 0
-      else
-        vysledek.delka := -1;
-      odecti := vysledek;
-      exit;
-    end;
+      begin
+        vysledek.delka := 0;
+        odecti := vysledek;
+        exit;
+      end
+      else if(porov = 2) then //c1 < c2, prohodime a vysledek je zaporny
+      begin
+           temp := c1;
+           c1 := c2;
+           c2 := temp; //now c1 > c2;
+           vysledek.isNegative := true;
+      end;
+    delka := c1.delka;
     zb := 0;
-    posledniNenul := 0;
-    for i := 0 to delka-1 do
-    begin
-      porov := c1.cislo[i+1] - c2.cislo[i+1] + zb;
-      vysledek.cislo[i+1] := betterMod(porov, 10);
-      if (vysledek.cislo[i+1] > 0) then
-        posledniNenul := i+1;
-      if (porov >= 0) then
-        zb := 0
-      else
-        zb := -1;
-    end;
-    vysledek.delka := posledniNenul;
+    for i := 1 to delka do
+       begin
+           if(c1.cislo[i] < (c2.cislo[i] + zb)) then
+          begin
+               vysledek.cislo[i] := (c1.cislo[i]+10) - (c2.cislo[i]+zb);
+               zb := 1;
+          end
+          else
+          begin
+              vysledek.cislo[i] := c1.cislo[i] - (c2.cislo[i]+zb);
+              zb := 0;
+           end;
+           if(vysledek.cislo[i] <> 0) then vysledek.delka := i;
+       end;
     if (otoc) then
       odecti := otocCislo(vysledek)
     else
@@ -382,6 +387,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
   end;
 
   function vydel2(c1, c2: cisloT): vysledekDeleni2;
+  //vyborny akorat nefunguje ve vsech pripadech když nejake cislo je vetsi nez base
   var
     vysl: vysledekDeleni2;
   var
@@ -404,48 +410,32 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
       vysl.quot.cislo[n - t + 1] := vysl.quot.cislo[n - t + 1] + 1;
       c1 := odecti(c1, vynasobeneDeseti, False);
     end;
-    //writeln('zredukovano :', vysl.quot.cislo[n - t + 1]);
-    //vypisCislo(otocCislo(c1));
     for i := n downto c2.delka do
     begin
       if (c1.cislo[i + 1] = c2.cislo[c2.delka]) then vysl.quot.cislo[i-t] := 9
       else
       begin
            vysl.quot.cislo[i-t] := (c1.cislo[i+1]*10 + c1.cislo[i]) div c2.cislo[c2.delka];
-           if(vysl.quot.cislo[i-t] > 9) then
-           begin
-             writeln('je vetsi ', c1.cislo[i+1]*10, '+', c1.cislo[i], ' div ', c2.cislo[c2.delka]);
-           end;
       end;
       longTemp := vysl.quot.cislo[i-t]*(c2.cislo[c2.delka]*10 + c2.cislo[t]);
       longTemp2 := c1.cislo[i+1]*100+c1.cislo[i]*10+c1.cislo[i-1];
       while (longTemp > longTemp2) do
       begin
-           writeln(longTemp, ' ', longTemp2);
            vysl.quot.cislo[i-t] := vysl.quot.cislo[i-t]-1;
-           longTemp := vysl.quot.cislo[i-t]*(c2.cislo[c2.delka]*10 + c2.cislo[t]);
-      end;
-      if(vysl.quot.cislo[i-t] > 9) then
-      begin
-           writeln('XXXX VETSI ', vysl.quot.cislo[i-t]);
+           longTemp := vysl.quot.cislo[i-t]*(c2.cislo[c2.delka]*10 + c2.cislo[c2.delka-1]);
       end;
       vynasobeneDeseti := vynasobDeseti(c2, i-t-1);
       temp.delka := 1;
       temp.cislo[1] := vysl.quot.cislo[i-t];
-      //writeln('nasobim: ',vysl.quot.cislo[i-t], ' s c2*10^', i-t-1);
       temp := vynasob2(temp, vynasobeneDeseti, false);
-      //writeln('vysle');
-      //vypisCislo(otocCislo(temp));
-      temp2 := secti(c1, vynasobeneDeseti, false);
       c1 := odecti(c1, temp, false);
-      if(c1.delka < 0) then
+      if(c1.isNegative = true) then
       begin
-        c1 := temp2;
-        writeln('pouzivam temp2');
+        c1 := odecti(vynasobeneDeseti, c1, false);
         vysl.quot.cislo[i-t] := vysl.quot.cislo[i-t] - 1;
       end;
     end;
-    for i := c1.delka downto 1 do
+    for i := n-t+1 downto 1 do
     begin
       if(vysl.quot.cislo[i] <> 0) then
       begin
@@ -612,7 +602,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
 var
   pocetCifer, pocetPrvocisel, i: integer;
 var
-  p, nahodne, pMensi, x: cisloT;
+  p, nahodne, pMensi, x, n1, n2: cisloT;
 var
   d2: vysledekDeleni2;
 var
@@ -628,24 +618,40 @@ begin
   readln(pocetPrvocisel);
   p := generujPrvocislo(pocetCifer);
   vynuluj(p);
-  vypisCislo(p);
+  //vypisCislo(p);
 
   pMensi := p;
   pMensi.cislo[pMensi.delka] := pMensi.cislo[pMensi.delka] - 1;
   vynuluj(pMensi);
 
   faktory := factor(p);
-  writeln('2^', faktory.exponent);
-  vypisCislo(faktory.zbytek);
-  writeln('nahodne');
+  //writeln('2^', faktory.exponent);
+  //vypisCislo(faktory.zbytek);
+  //writeln('nahodne');
   nahodne := generujNahodneCislo(pMensi);
   vynuluj(nahodne);
-  vypisCislo(nahodne);
+  //vypisCislo(nahodne);
 
   //x := modular_pow(nahodne, faktory.zbytek, p);
+  n1.delka := 3;
+  n1.cislo[1] := 2;
+  n1.cislo[2] := 4;
+  n1.cislo[3] := 3;
+
+  n2.delka := 1;
+  n2.cislo[1] := 9;
+  //p := n1;
+  //nahodne := n2;
   d2 := vydel2(p, nahodne);
-  writeln('prev delka: ', d2.quot.delka);
-  d2.quot.delka := 30;
+  //x := odecti(p, nahodne, true);
+  //writeln('prev delka: ', d2.quot.delka);
+  //d2.quot.delka := 30;
+  writeln;
+  writeln;
+  vypisCislo(p);
+  vypisCislo(nahodne);
+  //vypisCislo(x);
+
   vypisCislo(otocCislo(d2.quot));
   vypisCislo(otocCislo(d2.rem));
 
