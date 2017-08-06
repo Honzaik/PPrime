@@ -5,7 +5,7 @@ uses
   SysUtils;
 
 const
-  MAX_DELKA = 400;
+  MAX_DELKA = 410;
   MAX_DELKA_PRVOCISLA = 400;
   POCET_MALYCH_PRVOCISEL = 998;
   MAX_DELKA_BIN = 1330;
@@ -961,7 +961,7 @@ citelnyFormat := false;
      pokracuj := False;
      nahodne := generujNahodneCislo(pMensi);
      //x := modular_pow(nahodne, faktory.zbytek, p, True);
-     vypisCislo(nahodne, true, 'x');
+     //vypisCislo(nahodne, true, 'x');
      //vypisCislo(faktory.zbytek, true, 'exp');
      //vypisCislo(p, true, 'mod');
      nahodne := otocCislo(nahodne);
@@ -969,10 +969,12 @@ citelnyFormat := false;
      //vypisCislo(x, true, 'vysl');
      if (((x.delka = 1) and (x.cislo[1] = 1)) or (porovnani2(otoceneMensi, x) = 0)) then
      begin
+       writeln('passed ', i, '. test');
        Continue;
      end;
      for j := 1 to (faktory.exponent - 1) do
      begin
+       writeln('j: ', j);
        x := modulo(square(x, false), otoceneP, False);
        if ((x.delka = 1) and (x.cislo[1] = 1)) then
        begin
@@ -988,6 +990,7 @@ citelnyFormat := false;
      begin
        exit(False);
      end;
+     writeln('passed ', i, '. test');
    end;
    writeln;
    vypisCislo(p, True, 'je prvocislo ');
@@ -1021,7 +1024,7 @@ begin
     p := generujPrvocislo(pocetCifer);
     vynuluj(p);
     Write(pocetVygenerovanych, ' ');
-    if (isPrime(p, 4) = True) then
+    if (isPrime(p, 10) = True) then
       generuj := False;
   end;
   {p := generujPrvocislo(pocetCifer);
