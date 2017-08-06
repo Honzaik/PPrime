@@ -969,7 +969,6 @@ citelnyFormat := false;
      //vypisCislo(x, true, 'vysl');
      if (((x.delka = 1) and (x.cislo[1] = 1)) or (porovnani2(otoceneMensi, x) = 0)) then
      begin
-       writeln('tady cont ', i);
        Continue;
      end;
      for j := 1 to (faktory.exponent - 1) do
@@ -981,14 +980,12 @@ citelnyFormat := false;
        end;
        if ((porovnani2(otoceneMensi, x) = 0)) then
        begin
-         writeln('here ', i);
          pokracuj := True;
          break;
        end;
      end;
      if (not pokracuj) then
      begin
-       writeln('exiting ', i);
        exit(False);
      end;
    end;

@@ -954,6 +954,8 @@ citelnyFormat := false;
    faktory := factor(p);
    pDash := modInverse(p, b, true); //mDash
    pDash.cislo[1] := betterMod(-pDash.cislo[1], 10);
+   faktory.zbytek := otocCislo(faktory.zbytek);
+   pDash := otocCislo(pDash);
    for i := 1 to k do
    begin
      pokracuj := False;
@@ -963,8 +965,6 @@ citelnyFormat := false;
      //vypisCislo(faktory.zbytek, true, 'exp');
      //vypisCislo(p, true, 'mod');
      nahodne := otocCislo(nahodne);
-     faktory.zbytek := otocCislo(faktory.zbytek);
-     pDash := otocCislo(pDash);
      x := montExp(nahodne, faktory.zbytek, otoceneP, pDash);
      //vypisCislo(x, true, 'vysl');
      if (((x.delka = 1) and (x.cislo[1] = 1)) or (porovnani2(otoceneMensi, x) = 0)) then
