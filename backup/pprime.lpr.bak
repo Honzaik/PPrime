@@ -79,6 +79,7 @@ var
         p.cislo[delka] := lichaCisla[Random(4) + 1];
     end;
     p.delka := delka;
+    p.isNegative := false;
     generujPrvocislo := p;
   end;
 
@@ -156,12 +157,19 @@ citelnyFormat := false;
   var
     i: integer;
   begin
-    c.isNegative := False;
     for i := 1 to MAX_DELKA do
     begin
       if (i > c.delka) then
         c.cislo[i] := 0;
     end;
+  end;
+
+  procedure init(var c : cisloT);
+  var i : integer;
+  begin
+    for i := 1 to MAX_DELKA do c.cislo[i] := 0;
+    c.isNegative := false;
+    c.delka := 0;
   end;
 
   function generujNahodneCislo(horniHranice: cisloT): cisloT;
@@ -170,6 +178,7 @@ citelnyFormat := false;
   var
     nahodneCislo: cisloT;
   begin
+    init(nahodneCislo);
     repeat
       nahodneCislo.delka := Random(horniHranice.delka) + 1;
       nahodneCislo.cislo[1] := Random(9) + 1;
@@ -208,8 +217,7 @@ citelnyFormat := false;
   var
     zb: byte;
   begin
-    vysledek.delka := 0;
-    vynuluj(vysledek);
+    init(vysledek);
     delka := 0;
     zb := 0;
     if (porovnani(c1, c2) = 1) then
@@ -247,8 +255,7 @@ citelnyFormat := false;
   var
     i, j, c, temp: integer;
   begin
-    vysl.delka := 0;
-    vynuluj(vysl);
+    init(vysl);
     if ((c1.delka < 2) and (c1.cislo[1] = 0)) then
     begin
       vynasob := vysl;
@@ -319,9 +326,8 @@ citelnyFormat := false;
   var
     delka, i, porov, zb: integer;
   begin
-    vysledek.delka := 0;
-    vysledek.isNegative := False;
-    vynuluj(vysledek);
+    init(vysledek);
+    init(temp);
     zb := 0;
     if (jeCitelnyFormat) then
     begin
@@ -405,11 +411,10 @@ citelnyFormat := false;
   var
     longTemp, longTemp2: longint;
   begin
-    vysl.quot.delka := 0;
-    vysl.rem.delka := 0;
-    vynuluj(vysl.quot);
-    vynuluj(vysl.rem);
-    vynasobeneDeseti.delka := 0;
+    init(vysl.rem);
+    init(vysl.quot);
+    init(vynasobeneDeseti);
+    init(temp);
     if (jeCitelnyFormat) then
     begin
       c1 := otocCislo(c1);  //prevede na tvar kde na 1. indexu je nejmensi
@@ -420,7 +425,6 @@ citelnyFormat := false;
     n := c1.delka - 1;
     t := c2.delka - 1;
     vynasobeneDeseti := vynasobDeseti(c2, n - t);
-    vynuluj(vynasobeneDeseti);
     while (porovnani2(c1, vynasobeneDeseti) <> 2) do
     begin
       vysl.quot.cislo[n - t + 1] := vysl.quot.cislo[n - t + 1] + 1;
@@ -484,10 +488,8 @@ citelnyFormat := false;
   var
     q: byte;
   begin
-    vynasobeneDeseti.delka := 0;
-    vynuluj(vynasobeneDeseti);
-    temp.delka := 0;
-    vynuluj(temp);
+    init(vynasobeneDeseti);
+    init(temp);
     if (jeCitelnyFormat) then
     begin
       c1 := otocCislo(c1);  //prevede na tvar kde na 1. indexu je nejmensi
@@ -544,8 +546,7 @@ citelnyFormat := false;
   var
     vysledek: vysledekDeleniDvema;
   begin
-    for i := 1 to MAX_DELKA_PRVOCISLA do
-      vysledek.vysl.cislo[i] := 0;
+    init(vysledek.vysl);
     vysledek.zbytek := 0;
     j := 1;
     for i := 1 to p.delka do
@@ -577,8 +578,11 @@ citelnyFormat := false;
   var
     vyslF: vysledekFaktorizace;
   begin
+    init(vyslD.vysl);
+    vyslD.zbytek := 0;
     p.cislo[p.delka] := p.cislo[p.delka] - 1;
     vyslF.exponent := 0;
+    init(vyslF.zbytek);
     vyslF.zbytek := p;
     vyslD := vydelDvema(p);
     while ((vyslD.zbytek = 0) and ((vyslD.vysl.delka <> 1) or
@@ -597,8 +601,7 @@ citelnyFormat := false;
   var
     i, j, temp, c: integer;
   begin
-    vysl.delka := 0;
-    vynuluj(vysl);
+    init(vysl);
     if (jeCitelnyFormat) then
       c1 := otocCislo(c1);
     for i := 0 to (c1.delka - 1) do
@@ -643,12 +646,14 @@ citelnyFormat := false;
       modular_pow := vysledek;
       exit;
     end;
+    init(vysledek);
+    init(dva);
     vysledek.delka := 1;
     vysledek.cislo[1] := 1;
     dva.delka := 1;
     dva.cislo[1] := 2;
-    vynuluj(dva);
-    vynuluj(vysledek);
+    init(tempDeleni.quot);
+    init(tempDeleni.rem);
     //base := modulo(base, modulus, False);
     while exponent.delka > 0 do
     begin
@@ -671,6 +676,7 @@ citelnyFormat := false;
   var
     vysl: cisloT;
   begin
+    init(vysl);
     vysl.delka := length(s);
     for i := length(s) downto 1 do
     begin
@@ -849,23 +855,18 @@ citelnyFormat := false;
       a := otocCislo(a);
       m := otocCislo(m);
     end;
-    m0.delka := 0;
-    t.delka := 0;
-    q.delka := 0;
-    x0.delka := 0;
-    x1.delka := 0;
-    vynuluj(m0);
-    vynuluj(t);
-    vynuluj(q);
-    vynuluj(x0);
-    vynuluj(x1);
+    vynuluj(a);
+    vynuluj(m);
+    init(m0);
+    init(t);
+    init(q);
+    init(x0);
+    init(x1);
+    init(inverse);
+    init(nasobTemp);
     m0 := m;
     x1.delka := 1;
     x1.cislo[1] := 1;
-    inverse.delka := 0;
-    vynuluj(inverse);
-    nasobTemp.delka := 0;
-    vynuluj(nasobTemp);
     if ((m.delka = 1) and (m.cislo[1] = 1)) then
     begin
       exit(inverse);
@@ -885,7 +886,7 @@ citelnyFormat := false;
       t := x0;
       nasobTemp := vynasob(q, x0, false);
       x0 := odecti(x1, nasobTemp, false);
-      vypisCislo(t, true, 'sususus');
+      //vypisCislo(t, true, 'sususus');
       x1 := t;
     end;
 
