@@ -1140,7 +1140,6 @@ begin
     while generuj do
     begin
       Inc(pocetPokusu);
-      write(pocetPokusu, ' ');
       p := generujPrvocislo(pocetCifer);
       vynuluj(p);
       if (isPrime(p, PRESNOST) = True) then
