@@ -363,7 +363,7 @@ citelnyFormat := false;
     otocCislo := c;
   end;
 
-  function secti(c1, c2: cisloT; jeCitelnyFormat: boolean): cisloT;
+  function secti(c1, c2: cisloT): cisloT;
   var
     vysledek: cisloT;
   var
@@ -374,11 +374,6 @@ citelnyFormat := false;
     init(vysledek);
     delka := 0;
     zb := 0;
-    if (jeCitelnyFormat) then
-    begin
-      c1 := otocCislo(c1);
-      c2 := otocCislo(c2);
-    end;
     if (porovnani2(c1, c2) = 1) then
       delka := c1.delka
     else
@@ -397,12 +392,42 @@ citelnyFormat := false;
     end
     else
       vysledek.delka := delka;
-    if (jeCitelnyFormat) then
-      vysledek := otocCislo(vysledek);
     secti := vysledek;
   end;
 
-  function vynasob(c1, c2: cisloT; jeCitelnyFormat: boolean): cisloT;
+  function sectiVar(var c1, c2: cisloT): cisloT;
+  var
+    vysledek: cisloT;
+  var
+    delka, i: integer;
+  var
+    zb: byte;
+  begin
+    init(vysledek);
+    delka := 0;
+    zb := 0;
+    if (porovnani2(c1, c2) = 1) then
+      delka := c1.delka
+    else
+      delka := c2.delka;
+    for i := 1 to delka do
+    begin
+      vysledek.cislo[i] := c1.cislo[i] + c2.cislo[i] + zb;
+      zb := vysledek.cislo[i] div 10;
+      if (zb > 0) then
+        vysledek.cislo[i] := vysledek.cislo[i] mod 10;
+    end;
+    if (zb > 0) then
+    begin
+      vysledek.delka := delka + 1;
+      vysledek.cislo[vysledek.delka] := zb;
+    end
+    else
+      vysledek.delka := delka;
+    sectiVar := vysledek;
+  end;
+
+  function vynasob(var c1, c2: cisloT): cisloT;
   var
     vysl: cisloT;
   var
@@ -413,11 +438,6 @@ citelnyFormat := false;
     begin
       vynasob := vysl;
       exit;
-    end;
-    if (jeCitelnyFormat) then
-    begin
-      c1 := otocCislo(c1);
-      c2 := otocCislo(c2);
     end;
     for i := 0 to (c2.delka - 1) do
     begin
@@ -435,10 +455,7 @@ citelnyFormat := false;
         vysl.delka := i + c1.delka;
     end;
     vysl.isNegative := c1.isNegative xor c2.isNegative;
-    if (jeCitelnyFormat) then
-      vynasob := otocCislo(vysl)
-    else
-      vynasob := vysl;
+    vynasob := vysl;
   end;
 
   function vynasobDeseti(c1: cisloT; kolikrat: integer): cisloT;
@@ -497,7 +514,7 @@ citelnyFormat := false;
     betterMod := temp;
   end;
 
-  function odecti(c1, c2: cisloT; jeCitelnyFormat: boolean): cisloT;
+  function odecti(var c1, c2: cisloT): cisloT;
   var
     vysledek, temp: cisloT;
   var
@@ -506,37 +523,27 @@ citelnyFormat := false;
     init(vysledek);
     init(temp);
     porov := 0;
-    if (jeCitelnyFormat) then
-    begin
-      c1 := otocCislo(c1);
-      c2 := otocCislo(c2);
-    end;
 
     if ((not c1.isNegative) and c2.isNegative) then
     begin
-      vysledek := secti(c1, c2, False);
-      if (jeCitelnyFormat) then
-        vysledek := otocCislo(vysledek);
+      vysledek := secti(c1, c2);
       odecti := vysledek;
       exit;
     end;
 
     if (c1.isNegative and (not c2.isNegative)) then
     begin
-      vysledek := secti(c1, c2, False);
+      vysledek := sectiVar(c1, c2);
       vysledek.isNegative := True;
-      if (jeCitelnyFormat) then
-        vysledek := otocCislo(vysledek);
       odecti := vysledek;
       exit;
     end;
 
     if (c1.isNegative and c2.isNegative) then
     begin
-      c2.isNegative := False;
-      vysledek := odecti(c2, c1, False);
-      if (jeCitelnyFormat) then
-        vysledek := otocCislo(vysledek);
+      temp := c2;
+      temp.isNegative := false;
+      vysledek := odecti(temp, c1);
       odecti := vysledek;
       exit;
     end;
@@ -550,10 +557,14 @@ citelnyFormat := false;
     end
     else if (porov = 2) then //c1 < c2, prohodime a vysledek je zaporny
     begin
-      temp := c1;
+      {temp := c1;
       c1 := c2;
-      c2 := temp; //now c1 > c2;
+      c2 := temp; //now c1 > c2;      }
+      //writeln('HERE');
+      vysledek := odecti(c2, c1);
       vysledek.isNegative := True;
+      odecti := vysledek;
+      exit;
     end;
     delka := c1.delka;
     zb := 0;
@@ -573,7 +584,8 @@ citelnyFormat := false;
       if (vysledek.cislo[i] <> 0) then
         vysledek.delka := i;
     end;
-    {  slower
+
+     {
     for i := 1 to delka do
     begin
       porov := (c1.cislo[i] - c2.cislo[i]) + zb;
@@ -582,11 +594,8 @@ citelnyFormat := false;
       else zb := -1;
       if (vysledek.cislo[i] <> 0) then vysledek.delka := i;
     end;
-     }
-    if (jeCitelnyFormat) then
-      odecti := otocCislo(vysledek)
-    else
-      odecti := vysledek;
+      }
+    odecti := vysledek;
   end;
 
   function vydel(var c1, c2: cisloT): vysledekDeleni;
@@ -615,7 +624,7 @@ citelnyFormat := false;
     while (porovnani2(vysl.rem, vynasobeneDeseti) <> 2) do
     begin
       vysl.quot.cislo[n - t + 1] := vysl.quot.cislo[n - t + 1] + 1;
-      vysl.rem := odecti(vysl.rem, vynasobeneDeseti, False);
+      vysl.rem := odecti(vysl.rem, vynasobeneDeseti);
     end;
     for i := n downto c2.delka do
     begin
@@ -639,12 +648,12 @@ citelnyFormat := false;
       vynasobeneDeseti := vynasobDeseti(c2, i - t - 1);
       temp.delka := 1;
       temp.cislo[1] := vysl.quot.cislo[i - t];
-      temp := vynasob(temp, vynasobeneDeseti, False);
-      vysl.rem := odecti(vysl.rem, temp, False);
+      temp := vynasob(temp, vynasobeneDeseti);
+      vysl.rem := odecti(vysl.rem, temp);
       if (vysl.rem.isNegative = True) then
       begin
         vysl.rem.isNegative := False;
-        vysl.rem := odecti(vynasobeneDeseti, vysl.rem, False);
+        vysl.rem := odecti(vynasobeneDeseti, vysl.rem);
         vysl.quot.cislo[i - t] := vysl.quot.cislo[i - t] - 1;
       end;
     end;
@@ -681,7 +690,7 @@ citelnyFormat := false;
     vynasobeneDeseti := vynasobDeseti(c2, n - t);
     while (porovnani2(c1, vynasobeneDeseti) <> 2) do
     begin
-      c1 := odecti(c1, vynasobeneDeseti, False);
+      c1 := odecti(c1, vynasobeneDeseti);
     end;
     for i := n downto c2.delka do
     begin
@@ -703,12 +712,12 @@ citelnyFormat := false;
       vynasobeneDeseti := vynasobDeseti(c2, i - t - 1);
       temp.delka := 1;
       temp.cislo[1] := q;
-      temp := vynasob(temp, vynasobeneDeseti, False);
-      c1 := odecti(c1, temp, False);
+      temp := vynasob(temp, vynasobeneDeseti);
+      c1 := odecti(c1, temp);
       if (c1.isNegative = True) then
       begin
         c1.isNegative := False;
-        c1 := odecti(vynasobeneDeseti, c1, False);
+        c1 := odecti(vynasobeneDeseti, c1);
       end;
     end;
     modulo := c1;
@@ -917,15 +926,15 @@ citelnyFormat := false;
       m := modulo(a, m);
       a := t;
       t := x0;
-      nasobTemp := vynasob(q, x0, False);
-      x0 := odecti(x1, nasobTemp, False);
+      nasobTemp := vynasob(q, x0);
+      x0 := odecti(x1, nasobTemp);
       x1 := t;
     end;
 
     if (x1.isNegative) then
     begin
       x1.isNegative := False;
-      x1 := odecti(m0, x1, False);
+      x1 := odecti(m0, x1);
     end;
     modInverse := x1;
   end;
@@ -948,12 +957,11 @@ citelnyFormat := false;
       u.cislo[1] := betterMod(
         (A.cislo[1] + x.cislo[i + 1] * y.cislo[1]) * mDash.cislo[1], 10);
       xTemp.cislo[1] := x.cislo[i + 1];
-      temp := secti(A, secti(vynasob(xTemp, y, False), vynasob(u, m, False),
-        False), False);
+      temp := secti(A, secti(vynasob(xTemp, y), vynasob(u, m)));
       A := vydelDeseti(temp, 1);
     end;
     if (porovnani2(A, m) <> 2) then
-      A := odecti(A, m, False);
+      A := odecti(A, m);
     montMult := A;
   end;
 
