@@ -328,19 +328,19 @@ citelnyFormat := false;
 
   function generujNahodneCislo(var horniHranice: cisloT): cisloT;
   var
-    i: byte;
+    i: integer;
   var
     nahodneCislo: cisloT;
   begin
     init(nahodneCislo);
     repeat
       nahodneCislo.delka := Random(horniHranice.delka) + 1;
-      nahodneCislo.cislo[1] := Random(9) + 1;
-      for i := 2 to nahodneCislo.delka do
+      nahodneCislo.cislo[nahodneCislo.delka] := Random(9) + 1;
+      for i := 1 to nahodneCislo.delka-1 do
       begin
         nahodneCislo.cislo[i] := Random(10);
       end;
-    until ((porovnani(horniHranice, nahodneCislo) = 1) and
+    until ((porovnani2(horniHranice, nahodneCislo) = 1) and
         ((nahodneCislo.delka > 1) or (nahodneCislo.cislo[1] > 1))); //2<=n<hodniHranice
     generujNahodneCislo := nahodneCislo;
   end;
@@ -670,7 +670,7 @@ citelnyFormat := false;
 
   function modulo(c1 : cisloT; var c2: cisloT): cisloT;
   var
-    vynasobeneDeseti, temp: cisloT;  //rozbite
+    vynasobeneDeseti, temp: cisloT;
   var
     t, n, i: integer;
   var
@@ -1025,7 +1025,7 @@ citelnyFormat := false;
 
   function isPrime(var p: cisloT; k: byte): boolean;
   var
-    nahodne, pMensi, x, otoceneP, otoceneMensi, b, pDash: cisloT;
+    nahodne, pMensi, x, otoceneP, b, pDash: cisloT;
   var
     i, j: integer;
   var
@@ -1048,12 +1048,10 @@ citelnyFormat := false;
     init(nahodne);
     init(pMensi);
     init(x);
-    init(otoceneMensi);
     b.delka := 2;
     b.cislo[2] := 1;
-    pMensi := p;
-    pMensi.cislo[pMensi.delka] := pMensi.cislo[pMensi.delka] - 1;
-    otoceneMensi := otocCislo(pMensi);
+    pMensi := otoceneP;
+    pMensi.cislo[1] := pMensi.cislo[1] - 1;
     faktory.zbytek.delka := 0;
     vynuluj(faktory.zbytek);
     faktory.exponent := 0;
@@ -1068,13 +1066,12 @@ citelnyFormat := false;
     begin
       pokracuj := False;
       nahodne := generujNahodneCislo(pMensi);
-      nahodne := otocCislo(nahodne);
       FromTime := Now;
       x := montExp(nahodne, faktory.zbytek, otoceneP, pDash);
       ToTime := Now;
       pocetExp := pocetExp + 1;
       celkemMs := celkemMs + MilliSecondsBetween(FromTime, ToTime);
-      if (((x.delka = 1) and (x.cislo[1] = 1)) or (porovnani2(otoceneMensi, x) = 0)) then
+      if (((x.delka = 1) and (x.cislo[1] = 1)) or (porovnani2(pMensi, x) = 0)) then
       begin
         writeln('passed ', i, '. test');
         Continue;
@@ -1086,7 +1083,7 @@ citelnyFormat := false;
         begin
           exit(False);
         end;
-        if ((porovnani2(otoceneMensi, x) = 0)) then
+        if ((porovnani2(pMensi, x) = 0)) then
         begin
           pokracuj := True;
           break;
