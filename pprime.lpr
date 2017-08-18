@@ -589,7 +589,7 @@ citelnyFormat := false;
       odecti := vysledek;
   end;
 
-  function vydel(c1, c2: cisloT; jeCitelnyFormat: boolean): vysledekDeleni;
+  function vydel(var c1, c2: cisloT): vysledekDeleni;
   var
     vysl: vysledekDeleni;
   var
@@ -608,32 +608,28 @@ citelnyFormat := false;
     init(vysl.quot);
     init(vynasobeneDeseti);
     init(temp);
-    if (jeCitelnyFormat) then
-    begin
-      c1 := otocCislo(c1);  //prevede na tvar kde na 1. indexu je nejmensi
-      c2 := otocCislo(c2);
-    end;
+    vysl.rem := c1;
     n := c1.delka - 1;
     t := c2.delka - 1;
     vynasobeneDeseti := vynasobDeseti(c2, n - t);
-    while (porovnani2(c1, vynasobeneDeseti) <> 2) do
+    while (porovnani2(vysl.rem, vynasobeneDeseti) <> 2) do
     begin
       vysl.quot.cislo[n - t + 1] := vysl.quot.cislo[n - t + 1] + 1;
-      c1 := odecti(c1, vynasobeneDeseti, False);
+      vysl.rem := odecti(vysl.rem, vynasobeneDeseti, False);
     end;
     for i := n downto c2.delka do
     begin
-      if (c1.cislo[i + 1] = c2.cislo[c2.delka]) then
+      if (vysl.rem.cislo[i + 1] = c2.cislo[c2.delka]) then
         vysl.quot.cislo[i - t] := 9
       else
       begin
         //vysl.quot.cislo[i-t] := (c1.cislo[i+1]*10 + c1.cislo[i]) div c2.cislo[c2.delka]; //normalizace - rychlejsi
         vysl.quot.cislo[i - t] :=
-          (c1.cislo[i + 1] * 100 + c1.cislo[i] * 10 + c1.cislo[i - 1]) div
+          (vysl.rem.cislo[i + 1] * 100 + vysl.rem.cislo[i] * 10 + vysl.rem.cislo[i - 1]) div
           (c2.cislo[c2.delka] * 10 + c2.cislo[t]);
       end;
       longTemp := vysl.quot.cislo[i - t] * (c2.cislo[c2.delka] * 10 + c2.cislo[t]);
-      longTemp2 := c1.cislo[i + 1] * 100 + c1.cislo[i] * 10 + c1.cislo[i - 1];
+      longTemp2 := vysl.rem.cislo[i + 1] * 100 + vysl.rem.cislo[i] * 10 + vysl.rem.cislo[i - 1];
       while (longTemp > longTemp2) do
       begin
         vysl.quot.cislo[i - t] := vysl.quot.cislo[i - t] - 1;
@@ -644,11 +640,11 @@ citelnyFormat := false;
       temp.delka := 1;
       temp.cislo[1] := vysl.quot.cislo[i - t];
       temp := vynasob(temp, vynasobeneDeseti, False);
-      c1 := odecti(c1, temp, False);
-      if (c1.isNegative = True) then
+      vysl.rem := odecti(vysl.rem, temp, False);
+      if (vysl.rem.isNegative = True) then
       begin
-        c1.isNegative := False;
-        c1 := odecti(vynasobeneDeseti, c1, False);
+        vysl.rem.isNegative := False;
+        vysl.rem := odecti(vynasobeneDeseti, vysl.rem, False);
         vysl.quot.cislo[i - t] := vysl.quot.cislo[i - t] - 1;
       end;
     end;
@@ -659,12 +655,6 @@ citelnyFormat := false;
         vysl.quot.delka := i;
         break;
       end;
-    end;
-    vysl.rem := c1;
-    if (jeCitelnyFormat) then //prevede na tvar kde na 1. indexu je nejvetsi
-    begin
-      vysl.rem := otocCislo(vysl.rem);
-      vysl.quot := otocCislo(vysl.quot);
     end;
     vydel := vysl;
   end;
@@ -922,7 +912,7 @@ citelnyFormat := false;
         writeln('deleni nulou');
         halt(1);
       end;
-      q := vydel(a, m, False).quot;
+      q := vydel(a, m).quot;
       t := m;
       m := modulo(a, m);
       a := t;
