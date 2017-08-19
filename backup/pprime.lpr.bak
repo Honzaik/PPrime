@@ -808,47 +808,41 @@ citelnyFormat := false;
 
     square := vysl;
   end;
-  {
-  function modular_pow(base, exponent, modulus: cisloT;
-    jeCitelnyFormat: boolean): cisloT;
+
+  function modular_pow(var base : cisloT; exponent : cisloT; var modulus: cisloT): cisloT;
   var
-    vysledek, dva: cisloT;
+    vysledek, dva, temp: cisloT;
   var
-    tempDeleni: vysledekDeleni;
+    tempDeleni: vysledekDeleniDvema;
   begin
     init(vysledek);
-    if (jeCitelnyFormat) then
-    begin
-      base := otocCislo(base);
-      exponent := otocCislo(exponent);
-      modulus := otocCislo(modulus);
-    end;
     if ((modulus.delka = 1) and (modulus.cislo[1] = 1)) then
     begin
       modular_pow := vysledek;
       exit;
     end;
     init(dva);
+    init(temp);
     vysledek.delka := 1;
     vysledek.cislo[1] := 1;
-    dva.delka := 1;
-    dva.cislo[1] := 2;
-    init(tempDeleni.quot);
-    init(tempDeleni.rem);
+    init(tempDeleni.vysl);
     //base := modulo(base, modulus, False);
     while exponent.delka > 0 do
     begin
-      tempDeleni := vydel(exponent, dva, False);
-      if (tempDeleni.rem.delka = 1) then
+      temp := otocCislo(exponent);
+      tempDeleni := vydelDvema(temp);
+      if (tempDeleni.zbytek = 1) then
       begin
-        vysledek := modulo(vynasob(vysledek, base, False), modulus, False);
+        temp := vynasob(vysledek, base);
+        vysledek := modulo(temp, modulus);
       end;
-      base := modulo(square(base, False), modulus, False);
-      exponent := tempDeleni.quot;
+      temp := square(base);
+      base := modulo(temp, modulus);
+      exponent := otocCislo(tempDeleni.vysl);
     end;
     modular_pow := vysledek;
   end;
-  }
+
   function stringToCislo(s: string): cisloT;
   var
     i: integer;
@@ -1067,7 +1061,8 @@ citelnyFormat := false;
       pokracuj := False;
       nahodne := generujNahodneCislo(pMensi);
       FromTime := Now;
-      x := montExp(nahodne, faktory.zbytek, otoceneP, pDash);
+      //x := montExp(nahodne, faktory.zbytek, otoceneP, pDash);
+      x := modular_pow(nahodne, faktory.zbytek, otoceneP);
       ToTime := Now;
       pocetExp := pocetExp + 1;
       celkemMs := celkemMs + MilliSecondsBetween(FromTime, ToTime);
@@ -1140,7 +1135,6 @@ begin
     while generuj do
     begin
       Inc(pocetPokusu);
-      write(pocetPokusu, ' ');
       p := generujPrvocislo(pocetCifer);
       vynuluj(p);
       if (isPrime(p, PRESNOST) = True) then
