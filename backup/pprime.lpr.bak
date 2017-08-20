@@ -42,7 +42,8 @@ type
     vysl: cisloT;
     zbytek: byte;
   end;
-
+var
+  prazdneCislo : cisloT;
 var
   malaPrvocisla: array[1..POCET_MALYCH_PRVOCISEL] of cisloT;
 var
@@ -150,32 +151,21 @@ var
   var
     i: integer;
   begin
-    for i := 1 to MAX_DELKA do
-    begin
-      if (i > c.delka) then
+    for i := (c.delka+1) to MAX_DELKA do
         c.cislo[i] := 0;
-    end;
   end;
 
   procedure vynulujBin(var c: cisloBin);
   var
     i: integer;
   begin
-    for i := 1 to MAX_DELKA_BIN do
-    begin
-      if (i > c.delka) then
+    for i := (c.delka+1) to MAX_DELKA_BIN do
         c.cislo[i] := False;
-    end;
   end;
 
   procedure init(var c: cisloT);
-  var
-    i: integer;
   begin
-    for i := 1 to MAX_DELKA do
-      c.cislo[i] := 0;
-    c.isNegative := False;
-    c.delka := 0;
+    c := prazdneCislo;
   end;
 
   procedure vypisBin(c: cisloBin);
@@ -371,7 +361,6 @@ citelnyFormat := false;
   var
     zb: byte;
   begin
-    init(vysledek);
     delka := 0;
     zb := 0;
     if (porovnani2(c1, c2) = 1) then
@@ -392,6 +381,7 @@ citelnyFormat := false;
     end
     else
       vysledek.delka := delka;
+    vynuluj(vysledek);
     secti := vysledek;
   end;
 
@@ -403,7 +393,6 @@ citelnyFormat := false;
   var
     zb: byte;
   begin
-    init(vysledek);
     delka := 0;
     zb := 0;
     if (porovnani2(c1, c2) = 1) then
@@ -424,6 +413,7 @@ citelnyFormat := false;
     end
     else
       vysledek.delka := delka;
+    vynuluj(vysledek);
     sectiVar := vysledek;
   end;
 
@@ -479,7 +469,6 @@ citelnyFormat := false;
       c1.cislo[i] := 0;
     end;
     c1.delka := c1.delka + kolikrat;
-    vynuluj(c1);
     vynasobDeseti := c1;
   end;
 
@@ -502,7 +491,6 @@ citelnyFormat := false;
         c1.cislo[i - kolikrat] := c1.cislo[i];
     end;
     c1.delka := c1.delka - kolikrat;
-    vynuluj(c1);
     vydelDeseti := c1;
   end;
 
@@ -521,8 +509,6 @@ citelnyFormat := false;
     delka, i, porov, zb: integer;
   begin
     init(vysledek);
-    init(temp);
-    porov := 0;
 
     if ((not c1.isNegative) and c2.isNegative) then
     begin
@@ -541,6 +527,7 @@ citelnyFormat := false;
 
     if (c1.isNegative and c2.isNegative) then
     begin
+      init(temp);
       temp := c2;
       temp.isNegative := false;
       vysledek := odecti(temp, c1);
@@ -551,7 +538,6 @@ citelnyFormat := false;
     porov := porovnani2(c1, c2);
     if (porov = 0) then
     begin
-      vysledek.delka := 0;
       odecti := vysledek;
       exit;
     end
@@ -1061,8 +1047,8 @@ citelnyFormat := false;
       pokracuj := False;
       nahodne := generujNahodneCislo(pMensi);
       FromTime := Now;
-      //x := montExp(nahodne, faktory.zbytek, otoceneP, pDash);
-      x := modular_pow(nahodne, faktory.zbytek, otoceneP);
+      x := montExp(nahodne, faktory.zbytek, otoceneP, pDash);
+      //x := modular_pow(nahodne, faktory.zbytek, otoceneP);
       ToTime := Now;
       pocetExp := pocetExp + 1;
       celkemMs := celkemMs + MilliSecondsBetween(FromTime, ToTime);
@@ -1117,6 +1103,12 @@ var
 var
   vystup : text;
 begin
+
+  for i := 1 to MAX_DELKA do
+      prazdneCislo.cislo[i] := 0;
+  prazdneCislo.isNegative := False;
+  prazdneCislo.delka := 0;
+
   Randomize;
   assign(vystup, VYSTUPNI_SOUBOR);
   Write('Kolik cifer: ');
