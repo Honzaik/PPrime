@@ -11,7 +11,6 @@ const
   MAX_DELKA_BIN = 1330;
   VYSTUPNI_SOUBOR = 'vystup.txt';
   PRESNOST = 5;
-
 type
   dlouheCislo = array [1..MAX_DELKA] of byte;
 type
@@ -147,6 +146,8 @@ var
     '7723', '7727', '7741', '7753', '7757', '7759', '7789', '7793', '7817', '7823',
     '7829', '7841', '7853', '7867', '7873', '7877', '7879', '7883', '7901', '7907', '7919');
 
+  var celkemMs, pocetExp : longint;
+
   procedure vynuluj(var c: cisloT);
   var
     i: integer;
@@ -184,7 +185,7 @@ var
   end;
 
 
-  procedure vypisCislo(var c: cisloT; writeDelka: boolean; msg: string);
+  procedure vypisCislo(c: cisloT; writeDelka: boolean; msg: string);
   var
     i: integer;
   begin
@@ -947,7 +948,7 @@ citelnyFormat := false;
     montMult := A;
   end;
 
-  function prevedDoBin(var c: cisloT): cisloBin; //c je necitelne a vraci bin necitelne
+  function prevedDoBin(c: cisloT): cisloBin; //c je necitelne a vraci bin necitelne
   var
     binaryNum: cisloBin;
   var
@@ -969,9 +970,9 @@ citelnyFormat := false;
     prevedDoBin := binaryNum;
   end;
 
-  function montExp(var x, exp, m, mDash: cisloT): cisloT;
+  function montExp(var x, exp, m, mDash, R, RSqr: cisloT): cisloT;
   var
-    A, xTemp, R, RSqr, jedna: cisloT;
+    A, xTemp, jedna: cisloT;
   var
     expBin: cisloBin;
   var
@@ -981,16 +982,9 @@ citelnyFormat := false;
     vynulujBin(expBin);
     init(A);
     init(xTemp);
-    init(R);
-    init(RSqr);
     init(jedna);
     jedna.delka := 1;
     jedna.cislo[1] := 1;
-    R.delka := m.delka + 1;
-    R.cislo[R.delka] := 1;
-    RSqr.delka := (m.delka * 2) + 1;
-    RSqr.cislo[RSqr.delka] := 1;
-    RSqr := modulo(RSqr, m);
     xTemp := montMult(x, RSqr, m, mDash);
     A := modulo(R, m);
     for i := (expBin.delka - 1) downto 0 do
@@ -1007,7 +1001,7 @@ citelnyFormat := false;
 
   function isPrime(var p: cisloT; k: byte): boolean;
   var
-    nahodne, pMensi, x, otoceneP, b, pDash: cisloT;
+    nahodne, pMensi, x, otoceneP, b, pDash, R, RSqr: cisloT;
   var
     i, j: integer;
   var
@@ -1016,9 +1010,9 @@ citelnyFormat := false;
     faktory: vysledekFaktorizace;
   var
      FromTime, ToTime: TDateTime;
-  var celkemMs, pocetExp : longint;
 
   begin
+    vypisCislo(p, true, '');
     init(otoceneP);
     otoceneP := otocCislo(p); //necitelne
     if (p.delka > 4) then
@@ -1030,6 +1024,8 @@ citelnyFormat := false;
     init(nahodne);
     init(pMensi);
     init(x);
+    init(R);
+    init(RSqr);
     b.delka := 2;
     b.cislo[2] := 1;
     pMensi := otoceneP;
@@ -1042,15 +1038,17 @@ citelnyFormat := false;
     pDash.cislo[1] := betterMod(-pDash.cislo[1], 10);
     faktory.zbytek := otocCislo(faktory.zbytek);
     pDash := otocCislo(pDash);
-    celkemMs := 0;
-    pocetExp := 0;
+    R.delka := p.delka + 1;
+    R.cislo[R.delka] := 1;
+    RSqr.delka := (p.delka * 2) + 1;
+    RSqr.cislo[RSqr.delka] := 1;
+    RSqr := modulo(RSqr, otoceneP);
     for i := 1 to k do
     begin
       pokracuj := False;
       nahodne := generujNahodneCislo(pMensi);
       FromTime := Now;
-      x := montExp(nahodne, faktory.zbytek, otoceneP, pDash);
-      //x := modular_pow(nahodne, faktory.zbytek, otoceneP);
+      x := montExp(nahodne, faktory.zbytek, otoceneP, pDash, R, RSqr);
       ToTime := Now;
       pocetExp := pocetExp + 1;
       celkemMs := celkemMs + MilliSecondsBetween(FromTime, ToTime);
@@ -1080,7 +1078,6 @@ citelnyFormat := false;
     end;
     writeln;
     vypisCislo(p, True, 'je prvocislo ');
-    writeln('prumerny exp cas: ', (celkemMs/pocetExp):9:0, ' ms');
     isPrime := True;
   end;
 
@@ -1105,6 +1102,8 @@ var
 var
   vystup : text;
 begin
+  celkemMs := 0;
+  pocetExp := 0;
 
   for i := 1 to MAX_DELKA do
       prazdneCislo.cislo[i] := 0;
@@ -1147,6 +1146,7 @@ begin
   end;
   writeln('Vygenerovano ', pocetPrvocisel, ' prvocisel delky ', pocetCifer, '.');
   writeln('Prumerna doba generovani jednoho prvocisla: ', prumernyCas:9:0, ' ms');
+  writeln('Prumerny exp cas: ', (celkemMs/pocetExp):9:0, ' ms');
   close(vystup);
 end.
 
