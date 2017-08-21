@@ -53,6 +53,7 @@ type
   end;
 var
   prazdneCislo : cisloT;
+  prazdneCislo2 : cisloLT;
 var
   malaPrvocisla: array[1..POCET_MALYCH_PRVOCISEL] of cisloT;
 var
@@ -185,6 +186,11 @@ var
   procedure init(var c: cisloT);
   begin
     c := prazdneCislo;
+  end;
+
+  procedure init2(var c: cisloLT);
+  begin
+    c := prazdneCislo2;
   end;
 
   procedure vypisBin(c: cisloBin);
@@ -466,6 +472,43 @@ citelnyFormat := false;
     sectiVar := vysledek;
   end;
 
+  
+  function secti2(c1, c2: cisloLT): cisloLT;
+  var
+    vysledek: cisloLT;
+  var
+    delka, i: integer;
+  var
+    zb, zb2: longint;
+  begin
+    delka := 0;
+    zb := 0;
+    zb2 := 0;
+    if (porovnani3(c1, c2) = 1) then
+      delka := c1.delka
+    else
+      delka := c2.delka;
+    for i := 1 to delka do
+    begin
+      zb2 := zb;
+      zb := (c1.cislo[i] + c2.cislo[i] + zb2) div BASE;
+      if (zb > 0) then
+        vysledek.cislo[i] := vysledek.cislo[i] mod BASE
+      else
+        vysledek.cislo[i] := c1.cislo[i] + c2.cislo[i] + zb2;
+    end;
+    if (zb > 0) then
+    begin
+      vysledek.delka := delka + 1;
+      vysledek.cislo[vysledek.delka] := zb;
+    end
+    else
+      vysledek.delka := delka;
+
+    vynuluj2(vysledek);
+    secti2 := vysledek;
+  end;
+
   function vynasob(var c1, c2: cisloT): cisloT;
   var
     vysl: cisloT;
@@ -497,6 +540,40 @@ citelnyFormat := false;
     vynasob := vysl;
   end;
 
+  function vynasob2(var c1, c2: cisloLT): cisloLT;
+  var
+    vysl: cisloLT;
+  var
+    i, j : integer;
+  var c, cx, temp : longint;
+
+  begin
+    init2(vysl);
+    if ((c1.delka < 2) and (c1.cislo[1] = 0)) then
+    begin
+      vynasob2 := vysl;
+      exit;
+    end;
+    for i := 0 to (c2.delka - 1) do
+    begin
+      cx := 0;
+      c := 0;
+      for j := 0 to (c1.delka - 1) do
+      begin
+        cx := c;
+        c := (vysl.cislo[i + j + 1] + (c1.cislo[j + 1] * c2.cislo[i + 1]) + cx) div BASE;
+        vysl.cislo[i + j + 1] := (vysl.cislo[i + j + 1] + (c1.cislo[j + 1] * c2.cislo[i + 1]) + cx) mod BASE;
+      end;
+      vysl.cislo[i + c1.delka + 1] := c;
+      if (vysl.cislo[i + c1.delka + 1] > 0) then
+        vysl.delka := i + c1.delka + 1
+      else
+        vysl.delka := i + c1.delka;
+    end;
+    vysl.isNegative := c1.isNegative xor c2.isNegative;
+    vynasob2 := vysl;
+  end;
+
   function vynasobDeseti(c1: cisloT; kolikrat: integer): cisloT;
     {dolni jsou nejmensi <=> citelnyFormat = false}
   var
@@ -520,6 +597,31 @@ citelnyFormat := false;
     c1.delka := c1.delka + kolikrat;
     vynuluj(c1);
     vynasobDeseti := c1;
+  end;
+
+  function shiftLeft(c1: cisloLT; kolikrat: integer): cisloLT;
+    {dolni jsou nejmensi <=> citelnyFormat = false}
+  var
+    i: integer;
+  begin
+    if (kolikrat <= 0) then
+    begin
+      shiftLeft := c1;
+      exit;
+    end;
+    if (c1.delka + kolikrat > 50) then
+    begin
+      writeln('CHYBA delka');
+      halt(1);
+    end;
+    for i := c1.delka downto 1 do
+    begin
+      c1.cislo[i + kolikrat] := c1.cislo[i];
+      c1.cislo[i] := 0;
+    end;
+    c1.delka := c1.delka + kolikrat;
+    vynuluj2(c1);
+    shiftLeft := c1;
   end;
 
 
@@ -551,6 +653,36 @@ citelnyFormat := false;
     temp := i mod modulus;
     if (temp < 0) then temp := temp + modulus;
     betterMod := temp;
+  end;
+
+  function shiftRight(c1: cisloLT; kolikrat: integer): cisloLT;
+    {dolni jsou nejmensi <=> citelnyFormat = false}
+  var
+    i: integer;
+  begin
+    if (kolikrat <= 0) then
+    begin
+      shiftRight := c1;
+      exit;
+    end;
+    for i := 1 to c1.delka do
+    begin
+      if (i <= kolikrat) then
+        c1.cislo[i] := 0
+      else
+        c1.cislo[i - kolikrat] := c1.cislo[i];
+    end;
+    c1.delka := c1.delka - kolikrat;
+    vynuluj2(c1);
+    shiftRight := c1;
+  end;
+
+  function betterMod2(i, modulus: longint): longint;
+  var temp : longint;
+  begin
+    temp := i mod modulus;
+    if (temp < 0) then temp := temp + modulus;
+    betterMod2 := temp;
   end;
 
   function odecti(var c1, c2: cisloT): cisloT;
@@ -633,6 +765,65 @@ citelnyFormat := false;
     end;
       }
     odecti := vysledek;
+  end;
+
+  function odecti2(var c1, c2: cisloLT): cisloLT;
+  var
+    vysledek, temp: cisloLT;
+  var
+    delka, i, porov, zb: longint;
+  begin
+    init2(vysledek);
+
+    if ((not c1.isNegative) and c2.isNegative) then
+    begin
+      vysledek := secti2(c1, c2);
+      odecti2 := vysledek;
+      exit;
+    end;
+
+    if (c1.isNegative and (not c2.isNegative)) then
+    begin
+      vysledek := secti2(c1, c2);
+      vysledek.isNegative := True;
+      odecti2 := vysledek;
+      exit;
+    end;
+
+    if (c1.isNegative and c2.isNegative) then
+    begin
+      init2(temp);
+      temp := c2;
+      temp.isNegative := false;
+      vysledek := odecti2(temp, c1);
+      odecti2 := vysledek;
+      exit;
+    end;
+
+    porov := porovnani3(c1, c2);
+    if (porov = 0) then
+    begin
+      odecti2 := vysledek;
+      exit;
+    end
+    else if (porov = 2) then //c1 < c2, prohodime a vysledek je zaporny
+    begin
+      vysledek := odecti2(c2, c1);
+      vysledek.isNegative := True;
+      odecti2 := vysledek;
+      exit;
+    end;
+    delka := c1.delka;
+    zb := 0;
+     
+    for i := 1 to delka do
+    begin
+      vysledek.cislo[i] := betterMod2((c1.cislo[i] - c2.cislo[i]) + zb, BASE);
+      if(((c1.cislo[i] - c2.cislo[i]) + zb) >= 0) then zb := 0
+      else zb := -1;
+      if (vysledek.cislo[i] <> 0) then vysledek.delka := i;
+    end;
+    odecti2 := vysledek;
   end;
 
   function vydel(var c1, c2: cisloT): vysledekDeleni;
@@ -1141,42 +1332,6 @@ begin
   getLongInt := vysl;
 end;
 
-  function secti2(c1, c2: cisloLT): cisloLT;
-  var
-    vysledek: cisloLT;
-  var
-    delka, i: integer;
-  var
-    zb, zb2: longint;
-  begin
-    delka := 0;
-    zb := 0;
-    zb2 := 0;
-    if (porovnani3(c1, c2) = 1) then
-      delka := c1.delka
-    else
-      delka := c2.delka;
-    for i := 1 to delka do
-    begin
-      zb2 := zb;
-      zb := (c1.cislo[i] + c2.cislo[i] + zb2) div BASE;
-      if (zb > 0) then
-        vysledek.cislo[i] := vysledek.cislo[i] mod BASE
-      else
-        vysledek.cislo[i] := c1.cislo[i] + c2.cislo[i] + zb2;
-    end;
-    if (zb > 0) then
-    begin
-      vysledek.delka := delka + 1;
-      vysledek.cislo[vysledek.delka] := zb;
-    end
-    else
-      vysledek.delka := delka;
-
-    vynuluj2(vysledek);
-    secti2 := vysledek;
-  end;
-
 procedure zapisCisloDoSouboru(var f : text; var c : cisloT);
 var i : integer;
 begin
@@ -1208,6 +1363,11 @@ begin
       prazdneCislo.cislo[i] := 0;
   prazdneCislo.isNegative := False;
   prazdneCislo.delka := 0;
+
+  for i := 1 to 50 do
+      prazdneCislo2.cislo[i] := 0;
+  prazdneCislo2.isNegative := False;
+  prazdneCislo2.delka := 0;
 
   Randomize;
   assign(vystup, VYSTUPNI_SOUBOR);
@@ -1275,7 +1435,7 @@ begin
   end;
   
   test2 := test;
-  res := secti2(test, test2);
+  res := vynasob2(test, test2);
   writeln;
   writeln;
   for i := 1 to res.delka do
