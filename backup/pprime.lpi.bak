@@ -49,10 +49,10 @@
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <CodeGeneration>
-      <Optimizations>
-        <OptimizationLevel Value="4"/>
-      </Optimizations>
-      <SmallerCode Value="True"/>
+      <Checks>
+        <RangeChecks Value="True"/>
+        <OverflowChecks Value="True"/>
+      </Checks>
     </CodeGeneration>
     <Linking>
       <Debugging>

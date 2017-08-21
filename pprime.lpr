@@ -1,5 +1,5 @@
 program pprime;
-
+{$R+}
 uses
   DateUtils,
   SysUtils;
@@ -11,15 +11,23 @@ const
   MAX_DELKA_BIN = 1330;
   VYSTUPNI_SOUBOR = 'vystup.txt';
   PRESNOST = 5;
+  BASE = 2147483647;
 type
   dlouheCislo = array [1..MAX_DELKA] of byte;
 
-type dCislo = array [1..1000] of longint;
+type dCislo = array [1..50] of longint;
 type
   dlouheCisloBin = array [1..MAX_DELKA_BIN] of boolean;
 type
   cisloT = record
     cislo: dlouheCislo;
+    delka: integer;
+    isNegative: boolean;
+  end;
+
+type
+  cisloLT = record
+    cislo: dCislo;
     delka: integer;
     isNegative: boolean;
   end;
@@ -155,6 +163,14 @@ var
     i: integer;
   begin
     for i := (c.delka+1) to MAX_DELKA do
+        c.cislo[i] := 0;
+  end;
+
+   procedure vynuluj2(var c: cisloLT);
+  var
+    i: integer;
+  begin
+    for i := (c.delka+1) to 50 do
         c.cislo[i] := 0;
   end;
 
@@ -314,6 +330,36 @@ citelnyFormat := false;
             porovnani2 := 1
           else
             porovnani2 := 2;
+        end;
+      end;
+    end;
+  end;
+
+  function porovnani3(var c1, c2: cisloLT): byte;
+  var
+    i: longint;
+  begin
+    if (c1.delka > c2.delka) then
+      porovnani3 := 1
+    else
+    begin
+      if (c1.delka < c2.delka) then
+        porovnani3 := 2
+      else //stejna delka
+      begin
+        i := c1.delka;
+        while ((i > 0) and (c1.cislo[i] = c2.cislo[i])) do
+          i := i - 1;
+        if (i = 0) then
+          porovnani3 := 0
+        else
+        begin
+          if (c1.cislo[i] > c2.cislo[i]) then
+          begin
+            porovnani3 := 1;
+          end
+          else
+            porovnani3 := 2;
         end;
       end;
     end;
@@ -1095,6 +1141,42 @@ begin
   getLongInt := vysl;
 end;
 
+  function secti2(c1, c2: cisloLT): cisloLT;
+  var
+    vysledek: cisloLT;
+  var
+    delka, i: integer;
+  var
+    zb, zb2: longint;
+  begin
+    delka := 0;
+    zb := 0;
+    zb2 := 0;
+    if (porovnani3(c1, c2) = 1) then
+      delka := c1.delka
+    else
+      delka := c2.delka;
+    for i := 1 to delka do
+    begin
+      zb2 := zb;
+      zb := (c1.cislo[i] + c2.cislo[i] + zb2) div BASE;
+      if (zb > 0) then
+        vysledek.cislo[i] := vysledek.cislo[i] mod BASE
+      else
+        vysledek.cislo[i] := c1.cislo[i] + c2.cislo[i] + zb2;
+    end;
+    if (zb > 0) then
+    begin
+      vysledek.delka := delka + 1;
+      vysledek.cislo[vysledek.delka] := zb;
+    end
+    else
+      vysledek.delka := delka;
+
+    vynuluj2(vysledek);
+    secti2 := vysledek;
+  end;
+
 procedure zapisCisloDoSouboru(var f : text; var c : cisloT);
 var i : integer;
 begin
@@ -1116,7 +1198,7 @@ var
 var
   vystup : text;
 var vyslDel : vysledekDeleni;
-var test : dCislo;
+var test, test2, res : cisloLT;
 var rem, k : longint;
 begin
   celkemMs := 0;
@@ -1168,7 +1250,6 @@ begin
   close(vystup);
   }
 
-  k := 2147483647;
 
   n := stringToCislo('2147483647');
 
@@ -1176,21 +1257,32 @@ begin
   vypisCislo(p, true, 'p');
   p := otocCislo(p);
   i := 1;
-  while (p.delka > 1) do
+  while (p.delka > 0) do
   begin
     vyslDel := vydel(p, n);
     vypisCislo(otocCislo(vyslDel.rem), true, 'rem');
     rem := getLongInt(vyslDel.rem);
     writeln('rem : ', rem);
     p := vyslDel.quot;
-    test[i] := rem;
+    test.cislo[i] := rem;
+    test.delka := i;
     inc(i);
   end;
-
-  for i := 1 to 100 do
+  writeln;
+  for i := 1 to test.delka do
   begin
-    write(test[i], ' ');
+    write(test.cislo[i], ' ');
   end;
+  
+  test2 := test;
+  res := secti2(test, test2);
+  writeln;
+  writeln;
+  for i := 1 to res.delka do
+  begin
+    write(res.cislo[i], ' ');
+  end;
+  writeln;
 
 end.
 
