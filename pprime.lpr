@@ -13,6 +13,8 @@ const
   PRESNOST = 5;
 type
   dlouheCislo = array [1..MAX_DELKA] of byte;
+
+type dCislo = array [1..1000] of longint;
 type
   dlouheCisloBin = array [1..MAX_DELKA_BIN] of boolean;
 type
@@ -1081,6 +1083,18 @@ citelnyFormat := false;
     isPrime := True;
   end;
 
+function getLongInt(c : cisloT) : longint;
+var vysl : longint;
+var i : integer;
+begin
+  vysl := 0;
+  for i := 1 to c.delka do
+  begin
+    vysl := vysl + c.cislo[i]*round(exp((i-1)*ln(10)));
+  end;
+  getLongInt := vysl;
+end;
+
 procedure zapisCisloDoSouboru(var f : text; var c : cisloT);
 var i : integer;
 begin
@@ -1101,6 +1115,9 @@ var
   FromTime, ToTime: TDateTime;
 var
   vystup : text;
+var vyslDel : vysledekDeleni;
+var test : dCislo;
+var rem, k : longint;
 begin
   celkemMs := 0;
   pocetExp := 0;
@@ -1119,7 +1136,7 @@ begin
   loadPrimes();
   pocetPokusu := 0;
   prumernyCas := 0;
-
+  {
   rewrite(vystup);
   for i := 1 to pocetPrvocisel do
   begin
@@ -1144,9 +1161,36 @@ begin
       end;
     end;
   end;
+
   writeln('Vygenerovano ', pocetPrvocisel, ' prvocisel delky ', pocetCifer, '.');
   writeln('Prumerna doba generovani jednoho prvocisla: ', prumernyCas:9:0, ' ms');
   writeln('Prumerny exp cas: ', (celkemMs/pocetExp):9:0, ' ms');
   close(vystup);
+  }
+
+  k := 2147483647;
+
+  n := stringToCislo('2147483647');
+
+  p := generujPrvocislo(pocetCifer);
+  vypisCislo(p, true, 'p');
+  p := otocCislo(p);
+  i := 1;
+  while (p.delka > 1) do
+  begin
+    vyslDel := vydel(p, n);
+    vypisCislo(otocCislo(vyslDel.rem), true, 'rem');
+    rem := getLongInt(vyslDel.rem);
+    writeln('rem : ', rem);
+    p := vyslDel.quot;
+    test[i] := rem;
+    inc(i);
+  end;
+
+  for i := 1 to 100 do
+  begin
+    write(test[i], ' ');
+  end;
+
 end.
 
