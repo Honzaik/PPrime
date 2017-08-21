@@ -14,7 +14,7 @@ const
 type
   dlouheCislo = array [1..MAX_DELKA] of byte;
 
-type dCislo = array [1..50] of longint;
+type dCislo = array [1..100] of longint;
 type
   dlouheCisloBin = array [1..MAX_DELKA_BIN] of boolean;
 type
@@ -624,17 +624,17 @@ function otocCislo2(c: cisloLT): cisloLT;
     vynasobDeseti := c1;
   end;
 
-  function shiftLeft(c1: cisloLT; kolikrat: integer): cisloLT;
+  function shiftRight(c1: cisloLT; kolikrat: integer): cisloLT;
     {dolni jsou nejmensi <=> citelnyFormat = false}
   var
     i: integer;
   begin
     if (kolikrat <= 0) then
     begin
-      shiftLeft := c1;
+      shiftRight := c1;
       exit;
     end;
-    if (c1.delka + kolikrat > 50) then
+    if (c1.delka + kolikrat > 100) then
     begin
       writeln('CHYBA delka');
       halt(1);
@@ -646,7 +646,7 @@ function otocCislo2(c: cisloLT): cisloLT;
     end;
     c1.delka := c1.delka + kolikrat;
     vynuluj2(c1);
-    shiftLeft := c1;
+    shiftRight := c1;
   end;
 
 
@@ -680,14 +680,14 @@ function otocCislo2(c: cisloLT): cisloLT;
     betterMod := temp;
   end;
 
-  function shiftRight(c1: cisloLT; kolikrat: integer): cisloLT;
+  function shiftLeft(c1: cisloLT; kolikrat: integer): cisloLT;
     {dolni jsou nejmensi <=> citelnyFormat = false}
   var
     i: integer;
   begin
     if (kolikrat <= 0) then
     begin
-      shiftRight := c1;
+      shiftLeft := c1;
       exit;
     end;
     for i := 1 to c1.delka do
@@ -699,7 +699,7 @@ function otocCislo2(c: cisloLT): cisloLT;
     end;
     c1.delka := c1.delka - kolikrat;
     vynuluj2(c1);
-    shiftRight := c1;
+    shiftLeft := c1;
   end;
 
   function betterMod2(i, modulus: longint): longint;
@@ -928,8 +928,6 @@ function vydel2(var c1, c2: cisloLT): vysledekDeleni2;
     vynasobeneDeseti, temp: cisloLT;
   var
     t, n, i: integer;
-  var
-    longTemp, longTemp2: int64;
   begin
     if (c2.delka = 0) then
     begin
@@ -959,8 +957,6 @@ function vydel2(var c1, c2: cisloLT): vysledekDeleni2;
           (vysl.rem.cislo[i + 1] * (BASE*BASE) + vysl.rem.cislo[i] * BASE + vysl.rem.cislo[i - 1]) div
           (c2.cislo[c2.delka] * BASE + c2.cislo[t]);
       end;
-      //longTemp := vysl.quot.cislo[i - t] * (c2.cislo[c2.delka] * 10 + c2.cislo[t]);
-      longTemp2 := vysl.rem.cislo[i + 1] * 100 + vysl.rem.cislo[i] * 10 + vysl.rem.cislo[i - 1];
       while ((vysl.quot.cislo[i - t] * (c2.cislo[c2.delka] * BASE + c2.cislo[t])) > (vysl.rem.cislo[i + 1] * (BASE*BASE) + vysl.rem.cislo[i] * BASE + vysl.rem.cislo[i - 1])) do
       begin
         vysl.quot.cislo[i - t] := vysl.quot.cislo[i - t] - 1;
@@ -988,65 +984,62 @@ function vydel2(var c1, c2: cisloLT): vysledekDeleni2;
     vydel2 := vysl;
   end;
 
-    function modulo(c1 : cisloT; var c2: cisloT): cisloT;
-  var
-    vynasobeneDeseti, temp: cisloT;
-  var
-    t, n, i: integer;
-  var
-    longTemp, longTemp2: longint;
-  var
-    q: byte;
+function modulo(c1 : cisloT; var c2: cisloT): cisloT;
+var
+vynasobeneDeseti, temp: cisloT;
+var
+t, n, i: integer;
+var
+longTemp, longTemp2: longint;
+var
+q: byte;
+begin
+if (c2.delka = 0) then
+begin
+  writeln('DELENI NULOU');
+  halt(1);
+end;
+init(vynasobeneDeseti);
+init(temp);
+n := c1.delka - 1;
+t := c2.delka - 1;
+vynasobeneDeseti := vynasobDeseti(c2, n - t);
+while (porovnani2(c1, vynasobeneDeseti) <> 2) do
+begin
+  c1 := odecti(c1, vynasobeneDeseti);
+end;
+for i := n downto c2.delka do
+begin
+  if (c1.cislo[i + 1] = c2.cislo[c2.delka]) then
   begin
-    if (c2.delka = 0) then
-    begin
-      writeln('DELENI NULOU');
-      halt(1);
-    end;
-    init(vynasobeneDeseti);
-    init(temp);
-    n := c1.delka - 1;
-    t := c2.delka - 1;
-    vynasobeneDeseti := vynasobDeseti(c2, n - t);
-    while (porovnani2(c1, vynasobeneDeseti) <> 2) do
-    begin
-      c1 := odecti(c1, vynasobeneDeseti);
-    end;
-    vypisCislo(otocCislo(c1), true, 'c1');
-    vypisCislo(otocCislo(c2), true, 'c2');
-    for i := n downto c2.delka do
-    begin
-      if (c1.cislo[i + 1] = c2.cislo[c2.delka]) then
-      begin
-        writeln('pe');
-        q := 9;
-      end
-      else
-      begin
-        q :=
-          (c1.cislo[i + 1] * 100 + c1.cislo[i] * 10 + c1.cislo[i - 1]) div
-          (c2.cislo[c2.delka] * 10 + c2.cislo[t]);
-      end;
-      longTemp := q * (c2.cislo[c2.delka] * 10 + c2.cislo[t]);
-      longTemp2 := c1.cislo[i + 1] * 100 + c1.cislo[i] * 10 + c1.cislo[i - 1];
-      while (longTemp > longTemp2) do
-      begin
-        q := q - 1;
-        longTemp := q * (c2.cislo[c2.delka] * 10 + c2.cislo[c2.delka - 1]);
-      end;
-      vynasobeneDeseti := vynasobDeseti(c2, i - t - 1);
-      temp.delka := 1;
-      temp.cislo[1] := q;
-      temp := vynasob(temp, vynasobeneDeseti);
-      c1 := odecti(c1, temp);
-      if (c1.isNegative = True) then
-      begin
-        c1.isNegative := False;
-        c1 := odecti(vynasobeneDeseti, c1);
-      end;
-    end;
-    modulo := c1;
+    q := 9;
+  end
+  else
+  begin
+    q :=
+      (c1.cislo[i + 1] * 100 + c1.cislo[i] * 10 + c1.cislo[i - 1]) div
+      (c2.cislo[c2.delka] * 10 + c2.cislo[t]);
   end;
+  longTemp := q * (c2.cislo[c2.delka] * 10 + c2.cislo[t]);
+  longTemp2 := c1.cislo[i + 1] * 100 + c1.cislo[i] * 10 + c1.cislo[i - 1];
+  while (longTemp > longTemp2) do
+  begin
+    q := q - 1;
+    longTemp := q * (c2.cislo[c2.delka] * 10 + c2.cislo[c2.delka - 1]);
+  end;
+  vynasobeneDeseti := vynasobDeseti(c2, i - t - 1);
+  temp.delka := 1;
+  temp.cislo[1] := q;
+  temp := vynasob(temp, vynasobeneDeseti);
+  c1 := odecti(c1, temp);
+  if (c1.isNegative = True) then
+  begin
+    c1.isNegative := False;
+    c1 := odecti(vynasobeneDeseti, c1);
+  end;
+end;
+modulo := c1;
+end;
 
 function modulo2(c1 : cisloLT; var c2: cisloLT): cisloLT;
   var
@@ -1054,7 +1047,7 @@ function modulo2(c1 : cisloLT; var c2: cisloLT): cisloLT;
   var
     t, n, i: integer;
   var
-    longTemp, longTemp2, q: int64;
+    q: int64;
   begin
     if (c2.delka = 0) then
     begin
@@ -1073,7 +1066,7 @@ function modulo2(c1 : cisloLT; var c2: cisloLT): cisloLT;
     for i := n downto c2.delka do
     begin
       if (c1.cislo[i + 1] = c2.cislo[c2.delka]) then
-        q := 9
+        q := BASE-1
       else
       begin
         q :=
@@ -1316,8 +1309,6 @@ end;
     begin
       if (modulo(p, malaPrvocisla[i]).delka = 0) then
       begin
-        //vypisCislo(otocCislo(p), false, 'neni prvo: ');
-        //writeln('delitelne :', malaPrvocislaString[i]);
         exit(False);
       end;
     end;
@@ -1605,13 +1596,11 @@ function isPrime2(var p: cisloT; k: byte): boolean;
      FromTime, ToTime: TDateTime;
 
   begin
-    vypisCislo(p, true, '');
     init(otoceneP);
     otoceneP := otocCislo(p); //necitelne
     if (p.delka > 4) then
     begin
       if (dumbCheck(otoceneP) = False) then exit(False);
-      writeln('ku');
     end;
     init(nahodne);
     init(pMensi);
@@ -1688,6 +1677,9 @@ begin
   celkemMs := 0;
   pocetExp := 0;
 
+  Str(BASE, baseStr);
+  BASE_CISLO := stringToCislo(baseStr);
+
   for i := 1 to MAX_DELKA do
       prazdneCislo.cislo[i] := 0;
   prazdneCislo.isNegative := False;
@@ -1716,6 +1708,7 @@ begin
     while generuj do
     begin
       Inc(pocetPokusu);
+      write(pocetPokusu, ' ');
       p := generujPrvocislo(pocetCifer);
       vynuluj(p);
       if (isPrime2(p, PRESNOST) = True) then
