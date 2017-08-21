@@ -1,5 +1,4 @@
 program pprime;
-{$R+}
 uses
   DateUtils,
   SysUtils;
@@ -11,7 +10,7 @@ const
   MAX_DELKA_BIN = 1330;
   VYSTUPNI_SOUBOR = 'vystup.txt';
   PRESNOST = 5;
-  BASE = 2147483647;
+  BASE = 2097151;
 type
   dlouheCislo = array [1..MAX_DELKA] of byte;
 
@@ -45,6 +44,12 @@ type
   vysledekDeleni = record
     quot: cisloT;
     rem: cisloT;
+  end;
+
+type
+  vysledekDeleni2 = record
+    quot: cisloLT;
+    rem: cisloLT;
   end;
 type
   vysledekDeleniDvema = record
@@ -158,6 +163,7 @@ var
     '7829', '7841', '7853', '7867', '7873', '7877', '7879', '7883', '7901', '7907', '7919');
 
   var celkemMs, pocetExp : longint;
+  var BASE_CISLO : cisloT;
 
   procedure vynuluj(var c: cisloT);
   var
@@ -406,6 +412,25 @@ citelnyFormat := false;
       kon := kon - 1;
     end;
     otocCislo := c;
+  end;
+
+function otocCislo2(c: cisloLT): cisloLT;
+  var
+    zac, kon : integer;
+    temp : longint;
+
+  begin
+    zac := 1;
+    kon := c.delka;
+    while (zac < kon) do
+    begin
+      temp := c.cislo[zac];
+      c.cislo[zac] := c.cislo[kon];
+      c.cislo[kon] := temp;
+      Inc(zac);
+      kon := kon - 1;
+    end;
+    otocCislo2 := c;
   end;
 
   function secti(c1, c2: cisloT): cisloT;
@@ -896,7 +921,74 @@ citelnyFormat := false;
     vydel := vysl;
   end;
 
-  function modulo(c1 : cisloT; var c2: cisloT): cisloT;
+function vydel2(var c1, c2: cisloLT): vysledekDeleni2;
+  var
+    vysl: vysledekDeleni2;
+  var
+    vynasobeneDeseti, temp: cisloLT;
+  var
+    t, n, i: integer;
+  var
+    longTemp, longTemp2: int64;
+  begin
+    if (c2.delka = 0) then
+    begin
+      writeln('DELENI NULOU');
+      halt(1);
+    end;
+    init2(vysl.rem);
+    init2(vysl.quot);
+    init2(vynasobeneDeseti);
+    init2(temp);
+    vysl.rem := c1;
+    n := c1.delka - 1;
+    t := c2.delka - 1;
+    vynasobeneDeseti := shiftRight(c2, n - t);
+    while (porovnani3(vysl.rem, vynasobeneDeseti) <> 2) do
+    begin
+      vysl.quot.cislo[n - t + 1] := vysl.quot.cislo[n - t + 1] + 1;
+      vysl.rem := odecti2(vysl.rem, vynasobeneDeseti);
+    end;
+    for i := n downto c2.delka do
+    begin
+      if (vysl.rem.cislo[i + 1] = c2.cislo[c2.delka]) then
+        vysl.quot.cislo[i - t] := BASE-1
+      else
+      begin
+        vysl.quot.cislo[i - t] :=
+          (vysl.rem.cislo[i + 1] * (BASE*BASE) + vysl.rem.cislo[i] * BASE + vysl.rem.cislo[i - 1]) div
+          (c2.cislo[c2.delka] * BASE + c2.cislo[t]);
+      end;
+      //longTemp := vysl.quot.cislo[i - t] * (c2.cislo[c2.delka] * 10 + c2.cislo[t]);
+      longTemp2 := vysl.rem.cislo[i + 1] * 100 + vysl.rem.cislo[i] * 10 + vysl.rem.cislo[i - 1];
+      while ((vysl.quot.cislo[i - t] * (c2.cislo[c2.delka] * BASE + c2.cislo[t])) > (vysl.rem.cislo[i + 1] * (BASE*BASE) + vysl.rem.cislo[i] * BASE + vysl.rem.cislo[i - 1])) do
+      begin
+        vysl.quot.cislo[i - t] := vysl.quot.cislo[i - t] - 1;
+      end;
+      vynasobeneDeseti := shiftRight(c2, i - t - 1);
+      temp.delka := 1;
+      temp.cislo[1] := vysl.quot.cislo[i - t];
+      temp := vynasob2(temp, vynasobeneDeseti);
+      vysl.rem := odecti2(vysl.rem, temp);
+      if (vysl.rem.isNegative = True) then
+      begin
+        vysl.rem.isNegative := False;
+        vysl.rem := odecti2(vynasobeneDeseti, vysl.rem);
+        vysl.quot.cislo[i - t] := vysl.quot.cislo[i - t] - 1;
+      end;
+    end;
+    for i := n - t + 1 downto 1 do
+    begin
+      if (vysl.quot.cislo[i] <> 0) then
+      begin
+        vysl.quot.delka := i;
+        break;
+      end;
+    end;
+    vydel2 := vysl;
+  end;
+
+    function modulo(c1 : cisloT; var c2: cisloT): cisloT;
   var
     vynasobeneDeseti, temp: cisloT;
   var
@@ -920,10 +1012,15 @@ citelnyFormat := false;
     begin
       c1 := odecti(c1, vynasobeneDeseti);
     end;
+    vypisCislo(otocCislo(c1), true, 'c1');
+    vypisCislo(otocCislo(c2), true, 'c2');
     for i := n downto c2.delka do
     begin
       if (c1.cislo[i + 1] = c2.cislo[c2.delka]) then
-        q := 9
+      begin
+        writeln('pe');
+        q := 9;
+      end
       else
       begin
         q :=
@@ -949,6 +1046,56 @@ citelnyFormat := false;
       end;
     end;
     modulo := c1;
+  end;
+
+function modulo2(c1 : cisloLT; var c2: cisloLT): cisloLT;
+  var
+    vynasobeneDeseti, temp: cisloLT;
+  var
+    t, n, i: integer;
+  var
+    longTemp, longTemp2, q: int64;
+  begin
+    if (c2.delka = 0) then
+    begin
+      writeln('DELENI NULOU');
+      halt(1);
+    end;
+    init2(vynasobeneDeseti);
+    init2(temp);
+    n := c1.delka - 1;
+    t := c2.delka - 1;
+    vynasobeneDeseti := shiftRight(c2, n - t);
+    while (porovnani3(c1, vynasobeneDeseti) <> 2) do
+    begin
+      c1 := odecti2(c1, vynasobeneDeseti);
+    end;
+    for i := n downto c2.delka do
+    begin
+      if (c1.cislo[i + 1] = c2.cislo[c2.delka]) then
+        q := 9
+      else
+      begin
+        q :=
+          (c1.cislo[i + 1] * (BASE*BASE) + c1.cislo[i] * BASE + c1.cislo[i - 1]) div
+          (c2.cislo[c2.delka] * BASE + c2.cislo[t]);
+      end;
+      while ((q * (c2.cislo[c2.delka] * BASE + c2.cislo[t])) > (c1.cislo[i + 1] * (BASE*BASE) + c1.cislo[i] * BASE + c1.cislo[i - 1])) do
+      begin
+        q := q - 1;
+      end;
+      vynasobeneDeseti := shiftRight(c2, i - t - 1);
+      temp.delka := 1;
+      temp.cislo[1] := q;
+      temp := vynasob2(temp, vynasobeneDeseti);
+      c1 := odecti2(c1, temp);
+      if (c1.isNegative = True) then
+      begin
+        c1.isNegative := False;
+        c1 := odecti2(vynasobeneDeseti, c1);
+      end;
+    end;
+    modulo2 := c1;
   end;
 
 
@@ -1037,6 +1184,34 @@ citelnyFormat := false;
     square := vysl;
   end;
 
+function square2(var c1: cisloLT): cisloLT;
+  var
+    vysl: cisloLT;
+  var
+    i, j, temp, c: int64;
+  begin
+    init2(vysl);
+    for i := 0 to (c1.delka - 1) do
+    begin
+      temp := vysl.cislo[2 * i + 1] + (c1.cislo[i + 1] * c1.cislo[i + 1]);
+      vysl.cislo[(2 * i) + 1] := temp mod BASE;
+      c := temp div BASE;
+      for j := (i + 1) to (c1.delka - 1) do
+      begin
+        temp := vysl.cislo[(i + j) + 1] + (2 * c1.cislo[j + 1] * c1.cislo[i + 1]) + c;
+        vysl.cislo[(i + j) + 1] := temp mod BASE;
+        c := temp div BASE;
+      end;
+      vysl.cislo[i + c1.delka + 1] := c;
+    end;
+    if (vysl.cislo[c1.delka * 2] > 0) then
+      vysl.delka := c1.delka * 2
+    else
+      vysl.delka := c1.delka * 2 - 1;
+
+    square2 := vysl;
+  end;
+
   function modular_pow(var base : cisloT; exponent : cisloT; var modulus: cisloT): cisloT;
   var
     vysledek, dva, temp: cisloT;
@@ -1070,6 +1245,40 @@ citelnyFormat := false;
     end;
     modular_pow := vysledek;
   end;
+
+function modular_pow2(var base : cisloLT; exponent : cisloT; var modulus: cisloLT): cisloLT;
+var
+  vysledek, dva, temp: cisloLT;
+var
+  tempDeleni: vysledekDeleniDvema;
+begin
+  init2(vysledek);
+  if ((modulus.delka = 1) and (modulus.cislo[1] = 1)) then
+  begin
+    modular_pow2 := vysledek;
+    exit;
+  end;
+  init2(dva);
+  init2(temp);
+  vysledek.delka := 1;
+  vysledek.cislo[1] := 1;
+  init(tempDeleni.vysl);
+  //base := modulo(base, modulus, False);
+  while exponent.delka > 0 do
+  begin
+    exponent := otocCislo(exponent);
+    tempDeleni := vydelDvema(exponent);
+    if (tempDeleni.zbytek = 1) then
+    begin
+      temp := vynasob2(vysledek, base);
+      vysledek := modulo2(temp, modulus);
+    end;
+    temp := square2(base);
+    base := modulo2(temp, modulus);
+    exponent := otocCislo(tempDeleni.vysl);
+  end;
+  modular_pow2 := vysledek;
+end;
 
   function stringToCislo(s: string): cisloT;
   var
@@ -1340,6 +1549,125 @@ begin
      writeln(f, '');
 end;
 
+function convertToDec(c : cisloLT) : cisloT;
+var tempC, newC, digit : cisloT;
+var i : integer;
+var tempS : string;
+begin
+     init(tempC);
+     init(newC);
+     init(digit);
+     tempS := '';
+     c := otocCislo2(c);
+     for i := 1 to c.delka do
+     begin
+       Str(c.cislo[i], tempS);
+       digit := stringToCislo(tempS);
+       newC := secti(vynasob(newC, BASE_CISLO), digit);
+     end;
+     convertToDec := newC;
+end;
+
+function convertFromDec(c : cisloT) : cisloLT;
+var newC : cisloLT;
+var vyslDel : vysledekDeleni;
+var rem : longint;
+var i : integer;
+begin
+  init2(newC);
+  init(vyslDel.rem);
+  init(vyslDel.quot);
+  i := 1;
+  while (c.delka > 0) do
+    begin
+      vyslDel := vydel(c, BASE_CISLO);
+      rem := getLongInt(vyslDel.rem);
+      c := vyslDel.quot;
+      newC.cislo[i] := rem;
+      newC.delka := i;
+      inc(i);
+    end;
+  convertFromDec := newC;
+end;
+
+function isPrime2(var p: cisloT; k: byte): boolean;
+  var
+    nahodne, pMensi, otoceneP: cisloT;
+  var
+    nahodne2, pMensi2, x, otoceneP2: cisloLT;
+  var
+    i, j: integer;
+  var
+    pokracuj: boolean;
+  var
+    faktory: vysledekFaktorizace;
+  var
+     FromTime, ToTime: TDateTime;
+
+  begin
+    vypisCislo(p, true, '');
+    init(otoceneP);
+    otoceneP := otocCislo(p); //necitelne
+    if (p.delka > 4) then
+    begin
+      if (dumbCheck(otoceneP) = False) then exit(False);
+      writeln('ku');
+    end;
+    init(nahodne);
+    init(pMensi);
+    init2(nahodne2);
+    init2(pMensi2);
+    init2(x);
+    init2(otoceneP2);
+    pMensi := otoceneP;
+    pMensi.cislo[1] := pMensi.cislo[1] - 1;
+    faktory.zbytek.delka := 0;
+    vynuluj(faktory.zbytek);
+    faktory.exponent := 0;
+    faktory := factor(p);
+    faktory.zbytek := otocCislo(faktory.zbytek);
+    otoceneP2 := convertFromDec(otoceneP);
+    pMensi2 := otoceneP2;
+    pMensi2.cislo[1] := pMensi2.cislo[1] - 1;
+    for i := 1 to k do
+    begin
+      pokracuj := False;
+      nahodne := generujNahodneCislo(pMensi);
+      nahodne2 := convertFromDec(nahodne);
+      FromTime := Now;
+      x := modular_pow2(nahodne2, faktory.zbytek, otoceneP2);
+      ToTime := Now;
+      pocetExp := pocetExp + 1;
+      celkemMs := celkemMs + MilliSecondsBetween(FromTime, ToTime);
+      if (((x.delka = 1) and (x.cislo[1] = 1)) or (porovnani3(pMensi2, x) = 0)) then
+      begin
+        writeln('passed ', i, '. test');
+        Continue;
+      end;
+      for j := 1 to (faktory.exponent - 1) do
+      begin
+        x := modulo2(square2(x), otoceneP2);
+        if ((x.delka = 1) and (x.cislo[1] = 1)) then
+        begin
+          exit(False);
+        end;
+        if ((porovnani3(pMensi2, x) = 0)) then
+        begin
+          pokracuj := True;
+          break;
+        end;
+      end;
+      if (not pokracuj) then
+      begin
+        exit(False);
+      end;
+      writeln('passed ', i, '. test');
+    end;
+    writeln;
+    vypisCislo(p, True, 'je prvocislo ');
+    isPrime2 := True;
+  end;
+
 var
   pocetCifer, pocetPrvocisel, pocetPokusu, i, diffCas: integer;
 var
@@ -1352,9 +1680,10 @@ var
   FromTime, ToTime: TDateTime;
 var
   vystup : text;
-var vyslDel : vysledekDeleni;
-var test, test2, res : cisloLT;
+var test, test2, res, remainder : cisloLT;
+var del : vysledekDeleni2;
 var rem, k : longint;
+var baseStr : string;
 begin
   celkemMs := 0;
   pocetExp := 0;
@@ -1378,7 +1707,7 @@ begin
   loadPrimes();
   pocetPokusu := 0;
   prumernyCas := 0;
-  {
+
   rewrite(vystup);
   for i := 1 to pocetPrvocisel do
   begin
@@ -1389,7 +1718,7 @@ begin
       Inc(pocetPokusu);
       p := generujPrvocislo(pocetCifer);
       vynuluj(p);
-      if (isPrime(p, PRESNOST) = True) then
+      if (isPrime2(p, PRESNOST) = True) then
       begin
         generuj := False;
         ToTime := Now;
@@ -1408,41 +1737,32 @@ begin
   writeln('Prumerna doba generovani jednoho prvocisla: ', prumernyCas:9:0, ' ms');
   writeln('Prumerny exp cas: ', (celkemMs/pocetExp):9:0, ' ms');
   close(vystup);
-  }
 
-
-  n := stringToCislo('2147483647');
+    {
+  Str(BASE, baseStr);
+  BASE_CISLO := stringToCislo(baseStr);
 
   p := generujPrvocislo(pocetCifer);
   vypisCislo(p, true, 'p');
   p := otocCislo(p);
-  i := 1;
-  while (p.delka > 0) do
-  begin
-    vyslDel := vydel(p, n);
-    vypisCislo(otocCislo(vyslDel.rem), true, 'rem');
-    rem := getLongInt(vyslDel.rem);
-    writeln('rem : ', rem);
-    p := vyslDel.quot;
-    test.cislo[i] := rem;
-    test.delka := i;
-    inc(i);
-  end;
-  writeln;
-  for i := 1 to test.delka do
-  begin
-    write(test.cislo[i], ' ');
-  end;
-  
-  test2 := test;
-  res := vynasob2(test, test2);
-  writeln;
-  writeln;
-  for i := 1 to res.delka do
-  begin
-    write(res.cislo[i], ' ');
-  end;
   writeln;
 
+  test := convertFromDec(p);
+
+  test2 := test;
+  test2.cislo[1] := test2.cislo[1]-2;
+  del := vydel2(test, test2);
+
+  p := convertToDec(del.quot);
+  vypisCislo(otocCislo(p), true, 'quot');
+  p := convertToDec(del.rem);
+  vypisCislo(otocCislo(p), true, 'rem');
+
+  p := convertToDec(modulo2(test, test2));
+  vypisCislo(otocCislo(p), true, 'mod');
+
+
+  writeln;
+            }
 end.
 
