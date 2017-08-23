@@ -32,6 +32,13 @@ type
     isNegative: boolean;
   end;
 type
+  dlouheCisloBin = array [1..MAX_DELKA_BIN] of boolean;
+type
+  cisloBin = record
+    delka: integer;
+    cislo: dlouheCisloBin;
+  end;
+type
   vysledekFaktorizace = record
     exponent: integer;
     zbytek: cisloT;
@@ -60,6 +67,7 @@ type
 var
   prazdneCislo: cisloT;
   prazdneCislo2, DVA: cisloLT;
+  prazdneCisloBin : cisloBin;
 var
   malaPrvocisla: array[1..POCET_MALYCH_PRVOCISEL] of cisloLT;
 var
@@ -190,7 +198,8 @@ var
 var
   celkemMs, pocetExp: longint;
 var
-  BASE_CISLO: cisloT;
+  BASE_CISLO_DEC: cisloT;
+  BASE_CISLO : cisloLT;
 
   procedure vynuluj(var c: cisloT);
   var
@@ -216,6 +225,11 @@ var
   procedure init2(var c: cisloLT);
   begin
     c := prazdneCislo2;
+  end;
+
+  procedure initBin(var c: cisloBin);
+  begin
+    c := prazdneCisloBin;
   end;
 
   procedure vypisCisloDec(c: cisloT; writeDelka: boolean; msg: string);
@@ -667,9 +681,9 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     vydelDeseti := c1;
   end;
 
-  function betterMod(i, modulus: longint): integer;
+  function betterMod(i, modulus: int64): integer;
   var
-    temp: longint;
+    temp: int64;
   begin
     temp := i mod modulus;
     if (temp < 0) then
@@ -912,6 +926,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
       writeln('DELENI NULOU');
       halt(1);
     end;
+
     init2(norm);
     normalizeQuot := 1;
     if (c2.cislo[c2.delka] < BASE_HALF) then
@@ -958,7 +973,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
         c1 := odectiBase(vynasobene, c1);
         q := q - 1;
       end;
-      vysl.cislo[i + t] := q;
+      vysl.cislo[i - t] := q;
     end;
     for i := n - t + 1 downto 1 do
     begin
@@ -1036,7 +1051,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
         vysl.rem := odectiBase(vynasobene, vysl.rem);
         q := q - 1;
       end;
-      vysl.quot.cislo[i + t] := q;
+      vysl.quot.cislo[i - t] := q;
     end;
     for i := n - t + 1 downto 1 do
     begin
@@ -1118,6 +1133,10 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     begin
       writeln('DELENI NULOU');
       halt(1);
+    end;
+    if(porovnaniBase(c1,c2) = 2) then
+    begin
+      exit(c1);
     end;
     init2(vynasobene);
     init2(temp);
@@ -1392,7 +1411,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     begin
       Str(c.cislo[i], tempS);
       digit := stringToCislo(tempS);
-      newC := sectiDec(vynasobDec(newC, BASE_CISLO), digit);
+      newC := sectiDec(vynasobDec(newC, BASE_CISLO_DEC), digit);
     end;
     convertToDec := newC;
   end;
@@ -1413,7 +1432,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     i := 1;
     while (c.delka > 0) do
     begin
-      vyslDel := vydelDec(c, BASE_CISLO);
+      vyslDel := vydelDec(c, BASE_CISLO_DEC);
       rem := getLongInt(vyslDel.rem);
       c := vyslDel.quot;
       newC.cislo[i] := rem;
@@ -1447,20 +1466,20 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     dumbCheck := True;
   end;
 
-   {
-  function modInverse(a, m: cisloT): cisloT;
+  function modInverse(a, m: cisloLT): cisloLT;
   var
-    m0, t, q, x0, x1, inverse, nasobTemp: cisloT;
+    m0, t, q, x0, x1, inverse, nasobTemp: cisloLT;
+  var vyslD : vysledekDeleniBase;
   begin
-    vynuluj(a);
-    vynuluj(m);
-    init(m0);
-    init(t);
-    init(q);
-    init(x0);
-    init(x1);
-    init(inverse);
-    init(nasobTemp);
+    init2(m0);
+    init2(t);
+    init2(q);
+    init2(x0);
+    init2(x1);
+    init2(inverse);
+    init2(nasobTemp);
+    init2(vyslD.quot);
+    init2(vyslD.rem);
     m0 := m;
     x1.delka := 1;
     x1.cislo[1] := 1;
@@ -1473,53 +1492,102 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     begin
       if (m.delka = 0) then
       begin
-        writeln('deleni nulou');
-        halt(1);
+        //writeln('deleni nulou');
+        //halt(1);
+        exit(inverse);
       end;
-      q := vydel(a, m).quot;
+      q := vydelBase(a, m);
       t := m;
-      m := modulo(a, m);
+      m := moduloBase(a, m);
       a := t;
       t := x0;
-      nasobTemp := vynasob(q, x0);
-      x0 := odecti(x1, nasobTemp);
+      nasobTemp := vynasobBase(q, x0);
+      x0 := odectiBase(x1, nasobTemp);
       x1 := t;
     end;
 
     if (x1.isNegative) then
     begin
       x1.isNegative := False;
-      x1 := odecti(m0, x1);
+      x1 := sectiBaseVar(m0, x1);
     end;
     modInverse := x1;
   end;
 
-  function montMult(var x, y, m, mDash: cisloT): cisloT;
+  function montMult(var x, y, m, mDash: cisloLT): cisloLT;
   var
-    A, u, xTemp, temp, temp2: cisloT;
+    A, u, xTemp, temp, temp2: cisloLT;
   var
     i: integer;
   begin
-    init(A);
-    init(u);
-    init(xTemp);
-    init(temp);
-    init(temp2);
+    init2(A);
+    init2(u);
+    init2(xTemp);
+    init2(temp);
+    init2(temp2);
     u.delka := 1;
     xTemp.delka := 1;
     for i := 0 to (m.delka - 1) do
     begin
       u.cislo[1] := betterMod((A.cislo[1] + x.cislo[i + 1] * y.cislo[1]) *
-        mDash.cislo[1], 10);
+        mDash.cislo[1], BASE);
       xTemp.cislo[1] := x.cislo[i + 1];
-      temp := secti(A, secti(vynasob(xTemp, y), vynasob(u, m)));
-      A := vydelDeseti(temp, 1);
+      temp := sectiBase(A, sectiBase(vynasobBase(xTemp, y), vynasobBase(u, m)));
+      A := shiftRight(temp, 1);
     end;
-    if (porovnani2(A, m) <> 2) then
-      A := odecti(A, m);
+    if (porovnaniBase(A, m) <> 2) then
+      A := odectiBase(A, m);
     montMult := A;
   end;
-   }
+
+  function prevedDoBin(c: cisloLT): cisloBin; //c je necitelne a vraci bin necitelne
+  var
+    binaryNum: cisloBin;
+  var
+    tempBit: byte;
+  begin
+    initBin(binaryNum);
+    while ((c.cislo[1] <> 0) or (c.delka <> 0)) do
+    begin
+      tempBit := c.cislo[1] mod 2;
+      Inc(binaryNum.delka);
+      if (tempBit = 0) then
+        binaryNum.cislo[binaryNum.delka] := False
+      else
+        binaryNum.cislo[binaryNum.delka] := True;
+      c := vydelBase(c, dva);
+    end;
+    prevedDoBin := binaryNum;
+  end;
+
+  function montExp(var x, exp, m, mDash, R, RSqr: cisloLT): cisloLT;
+  var
+    A, xTemp, jedna: cisloLT;
+  var
+    expBin: cisloBin;
+  var
+    i: integer;
+  begin
+    expBin := prevedDoBin(exp);
+    init2(A);
+    init2(xTemp);
+    init2(jedna);
+    jedna.delka := 1;
+    jedna.cislo[1] := 1;
+    xTemp := montMult(x, RSqr, m, mDash);
+    A := moduloBase(R, m);
+    for i := (expBin.delka - 1) downto 0 do
+    begin
+      A := montMult(A, A, m, mDash);
+      if (expBin.cislo[i + 1] = True) then
+      begin
+        A := montMult(A, xTemp, m, mDash);
+      end;
+    end;
+    A := montMult(A, jedna, m, mDash);
+    montExp := A;
+  end;
+
   procedure zapisCisloDoSouboru(var f: Text; var c: cisloT);
   var
     i: integer;
@@ -1593,6 +1661,83 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     isPrime := True;
   end;
 
+function isPrime2(var p: cisloLT; k: byte): boolean;
+  var
+    nahodneBase, pMensiBase, x, pDash, R, RSqr : cisloLT;
+  var
+    i, j: integer;
+  var
+    pokracuj: boolean;
+  var
+    faktory: vysledekFaktorizace2;
+  var
+    FromTime, ToTime: TDateTime;
+
+  begin
+    if (p.delka > 4) then
+    begin
+      if (dumbCheck(p) = False) then
+        exit(False);
+    end;
+    init2(nahodneBase);
+    init2(pMensiBase);
+    init2(x);
+    init2(faktory.zbytek);
+    init2(pDash);
+    init2(R);
+    init2(RSqr);
+    faktory.exponent := 0;
+    faktory := factor2(p);
+    writeln('jdddere');
+    pDash := modInverse(p, BASE_CISLO);
+    writeln('jere');
+    if(pDash.delka = 0) then exit(False);
+    pDash.cislo[1] := betterMod(-pDash.cislo[1], BASE);
+    R.delka := p.delka + 1;
+    R.cislo[R.delka] := 1;
+    RSqr.delka := (p.delka * 2) + 1;
+    RSqr.cislo[RSqr.delka] := 1;
+    RSqr := moduloBase(RSqr, p);
+    pMensiBase := p;
+    pMensiBase.cislo[1] := pMensiBase.cislo[1] - 1;
+    for i := 1 to k do
+    begin
+      pokracuj := False;
+      nahodneBase := generujNahodneCisloMensiNez(pMensiBase);
+      FromTime := Now;
+      //x := modular_pow(nahodneBase, faktory.zbytek, p);
+      x := montExp(nahodneBase, faktory.zbytek, p, pDash, R, RSqr);
+      ToTime := Now;
+      pocetExp := pocetExp + 1;
+      celkemMs := celkemMs + MilliSecondsBetween(FromTime, ToTime);
+      if (((x.delka = 1) and (x.cislo[1] = 1)) or
+        (porovnaniBase(pMensiBase, x) = 0)) then
+      begin
+        //writeln('passed ', i, '. test');
+        Continue;
+      end;
+      for j := 1 to (faktory.exponent - 1) do
+      begin
+        x := moduloBase(squareBase(x), p);
+        if ((x.delka = 1) and (x.cislo[1] = 1)) then
+        begin
+          exit(False);
+        end;
+        if ((porovnaniBase(pMensiBase, x) = 0)) then
+        begin
+          pokracuj := True;
+          break;
+        end;
+      end;
+      if (not pokracuj) then
+      begin
+        exit(False);
+      end;
+      //writeln('passed ', i, '. test');
+    end;
+    isPrime2 := True;
+  end;
+
 var
   pocetCifer, pocetPrvocisel, pocetPokusu, i, diffCas: integer;
 var
@@ -1618,7 +1763,8 @@ begin
   pocetExp := 0;
 
   Str(BASE, baseStr);
-  BASE_CISLO := stringToCislo(baseStr);
+  BASE_CISLO_DEC := stringToCislo(baseStr);
+  BASE_CISLO := convertFromDec(BASE_CISLO_DEC);
 
   for i := 0 to MAX_DELKA_DEC do
     prazdneCislo.cislo[i] := 0;
@@ -1629,6 +1775,10 @@ begin
     prazdneCislo2.cislo[i] := 0;
   prazdneCislo2.isNegative := False;
   prazdneCislo2.delka := 0;
+
+  for i := 0 to MAX_DELKA_BASE do
+    prazdneCisloBin.cislo[i] := False;
+  prazdneCisloBin.delka := 0;
 
   DVA := prazdneCislo2;
   DVA.delka := 1;
@@ -1656,7 +1806,7 @@ begin
       p := generujPrvocislo(pocetCifer);
       vynuluj(p);
       otocenePBase := convertFromDec(otocCisloDec(p));
-      if (isPrime(otocenePBase, PRESNOST) = True) then
+      if (isPrime2(otocenePBase, PRESNOST) = True) then
       begin
         generuj := False;
         ToTime := Now;
