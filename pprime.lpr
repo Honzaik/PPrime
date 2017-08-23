@@ -1509,7 +1509,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     if (x1.isNegative) then
     begin
       x1.isNegative := False;
-      x1 := sectiBaseVar(m0, x1);
+      x1 := odectiBase(m0, x1);
     end;
     modInverse := x1;
   end;
@@ -1540,24 +1540,59 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     montMult := A;
   end;
 
+  function otocBin(c: cisloBin): cisloBin;
+  var
+    zac, kon: integer;
+  var
+    temp: boolean;
+  begin
+    zac := 1;
+    kon := c.delka;
+    while (zac < kon) do
+    begin
+      temp := c.cislo[zac];
+      c.cislo[zac] := c.cislo[kon];
+      c.cislo[kon] := temp;
+      Inc(zac);
+      kon := kon - 1;
+    end;
+    otocBin := c;
+  end;
+
   function prevedDoBin(c: cisloLT): cisloBin; //c je necitelne a vraci bin necitelne
   var
     binaryNum: cisloBin;
-  var
-    tempBit: byte;
+  var vyslD : vysledekDeleniBase;
   begin
     initBin(binaryNum);
+    init2(vyslD.quot);
+    init2(vyslD.rem);
     while ((c.cislo[1] <> 0) or (c.delka <> 0)) do
     begin
-      tempBit := c.cislo[1] mod 2;
+      vyslD := vydelBaseWithRem(c, DVA);
       Inc(binaryNum.delka);
-      if (tempBit = 0) then
+      if (vyslD.rem.delka = 0) then
         binaryNum.cislo[binaryNum.delka] := False
       else
         binaryNum.cislo[binaryNum.delka] := True;
-      c := vydelBase(c, dva);
+      c := vyslD.quot;
     end;
     prevedDoBin := binaryNum;
+  end;
+
+procedure vypisBin(c: cisloBin);
+  var
+    i: integer;
+  begin
+    writeln('delka : ', c.delka);
+    for i := 1 to c.delka do
+    begin
+      if (c.cislo[i]) then
+        Write(1)
+      else
+        Write(0);
+    end;
+    writeln;
   end;
 
   function montExp(var x, exp, m, mDash, R, RSqr: cisloLT): cisloLT;
@@ -1688,11 +1723,13 @@ function isPrime2(var p: cisloLT; k: byte): boolean;
     init2(RSqr);
     faktory.exponent := 0;
     faktory := factor2(p);
-    writeln('jdddere');
     pDash := modInverse(p, BASE_CISLO);
-    writeln('jere');
     if(pDash.delka = 0) then exit(False);
+    //vypisCisloBase(pDash, true, 'pred mod');
     pDash.cislo[1] := betterMod(-pDash.cislo[1], BASE);
+    //vypisCisloBase(pDash, true, 'po mod');
+    //pDash := moduloBase(pDash, BASE_CISLO);
+    //vypisCisloBase(pDash, true, 'modulos');
     R.delka := p.delka + 1;
     R.cislo[R.delka] := 1;
     RSqr.delka := (p.delka * 2) + 1;
@@ -1776,7 +1813,7 @@ begin
   prazdneCislo2.isNegative := False;
   prazdneCislo2.delka := 0;
 
-  for i := 0 to MAX_DELKA_BASE do
+  for i := 0 to MAX_DELKA_BIN do
     prazdneCisloBin.cislo[i] := False;
   prazdneCisloBin.delka := 0;
 
@@ -1802,11 +1839,11 @@ begin
     while generuj do
     begin
       Inc(pocetPokusu);
-      write(pocetPokusu, ' ');
+      //write(pocetPokusu, ' ');
       p := generujPrvocislo(pocetCifer);
       vynuluj(p);
       otocenePBase := convertFromDec(otocCisloDec(p));
-      if (isPrime2(otocenePBase, PRESNOST) = True) then
+      if (isPrime(otocenePBase, PRESNOST) = True) then
       begin
         generuj := False;
         ToTime := Now;
