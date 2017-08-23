@@ -37,6 +37,11 @@ type
     zbytek: cisloT;
   end;
 type
+  vysledekFaktorizace2 = record
+    exponent: integer;
+    zbytek: cisloLT;
+  end;
+type
   vysledekDeleniDec = record
     quot: cisloT;
     rem: cisloT;
@@ -54,7 +59,7 @@ type
   end;
 var
   prazdneCislo: cisloT;
-  prazdneCislo2: cisloLT;
+  prazdneCislo2, DVA: cisloLT;
 var
   malaPrvocisla: array[1..POCET_MALYCH_PRVOCISEL] of cisloLT;
 var
@@ -349,7 +354,8 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     init2(nahodneCislo);
     repeat
       nahodneCislo.delka := Random(horniHranice.delka) + 1;
-      nahodneCislo.cislo[nahodneCislo.delka] := Random(horniHranice.cislo[horniHranice.delka]) + 1;
+      nahodneCislo.cislo[nahodneCislo.delka] :=
+        Random(horniHranice.cislo[horniHranice.delka]) + 1;
       for i := 1 to nahodneCislo.delka - 1 do
       begin
         nahodneCislo.cislo[i] := Random(2097151);
@@ -891,14 +897,15 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     vydelDec := vysl;
   end;
 
-  function vydelBase(c1 : cisloLT; c2: cisloLT): cisloLT;
+  function vydelBase(c1, c2: cisloLT): cisloLT;
   var
     vysl, vynasobene, temp, norm: cisloLT;
   var
     t, n, i: integer;
   var
     tempInt, q: int64;
-  var normalizeQuot : longint;
+  var
+    normalizeQuot: longint;
   begin
     if (c2.delka = 0) then
     begin
@@ -907,13 +914,13 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     end;
     init2(norm);
     normalizeQuot := 1;
-    if(c2.cislo[c2.delka] < BASE_HALF) then
+    if (c2.cislo[c2.delka] < BASE_HALF) then
     begin
-         normalizeQuot := (BASE_HALF div c2.cislo[c2.delka]) + 1;
-         norm.delka := 1;
-         norm.cislo[1] := normalizeQuot;
-         c1 := vynasobBase(c1, norm);
-         c2 := vynasobBase(c2, norm);
+      normalizeQuot := (BASE_HALF div c2.cislo[c2.delka]) + 1;
+      norm.delka := 1;
+      norm.cislo[1] := normalizeQuot;
+      c1 := vynasobBase(c1, norm);
+      c2 := vynasobBase(c2, norm);
     end;
     init2(vysl);
     init2(vynasobene);
@@ -929,7 +936,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     for i := n downto c2.delka do
     begin
       tempInt := (c1.cislo[i + 1] * (BASE * BASE) + c1.cislo[i] *
-          BASE + c1.cislo[i - 1]);
+        BASE + c1.cislo[i - 1]);
       if (c1.cislo[i + 1] = c2.cislo[c2.delka]) then
         q := BASE - 1
       else
@@ -962,6 +969,84 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
       end;
     end;
     vydelBase := vysl;
+  end;
+
+  function vydelBaseWithRem(var c1: cisloLT; c2: cisloLT): vysledekDeleniBase;
+  var
+    vysl: vysledekDeleniBase;
+  var
+    vynasobene, temp, norm: cisloLT;
+  var
+    t, n, i: integer;
+  var
+    tempInt, q: int64;
+  var
+    normalizeQuot: longint;
+  begin
+    if (c2.delka = 0) then
+    begin
+      writeln('DELENI NULOU');
+      halt(1);
+    end;
+    init2(norm);
+    init2(vysl.quot);
+    init2(vysl.rem);
+    normalizeQuot := 1;
+    vysl.rem := c1;   //vysl.rem = c1
+    if (c2.cislo[c2.delka] < BASE_HALF) then
+    begin
+      normalizeQuot := (BASE_HALF div c2.cislo[c2.delka]) + 1;
+      norm.delka := 1;
+      norm.cislo[1] := normalizeQuot;
+      vysl.rem := vynasobBase(vysl.rem, norm);
+      c2 := vynasobBase(c2, norm);
+    end;
+    init2(vynasobene);
+    init2(temp);
+    n := vysl.rem.delka - 1;
+    t := c2.delka - 1;
+    vynasobene := shiftLeft(c2, n - t);
+    while (porovnaniBase(vysl.rem, vynasobene) <> 2) do
+    begin
+      vysl.quot.cislo[n - t + 1] := vysl.quot.cislo[n - t + 1] + 1;
+      vysl.rem := odectiBase(vysl.rem, vynasobene);
+    end;
+    for i := n downto c2.delka do
+    begin
+      tempInt := (vysl.rem.cislo[i + 1] * (BASE * BASE) + vysl.rem.cislo[i] *
+        BASE + vysl.rem.cislo[i - 1]);
+      if (vysl.rem.cislo[i + 1] = c2.cislo[c2.delka]) then
+        q := BASE - 1
+      else
+      begin
+        q := tempInt div (c2.cislo[c2.delka] * BASE + c2.cislo[t]);
+      end;
+      while ((q * (c2.cislo[c2.delka] * BASE + c2.cislo[t])) > tempInt) do
+      begin
+        q := q - 1;
+      end;
+      vynasobene := shiftLeft(c2, i - t - 1);
+      temp.delka := 1;
+      temp.cislo[1] := q;
+      temp := vynasobBase(temp, vynasobene);
+      vysl.rem := odectiBase(vysl.rem, temp);
+      if (vysl.rem.isNegative = True) then
+      begin
+        vysl.rem.isNegative := False;
+        vysl.rem := odectiBase(vynasobene, vysl.rem);
+        q := q - 1;
+      end;
+      vysl.quot.cislo[i + t] := q;
+    end;
+    for i := n - t + 1 downto 1 do
+    begin
+      if (vysl.quot.cislo[i] <> 0) then
+      begin
+        vysl.quot.delka := i;
+        break;
+      end;
+    end;
+    vydelBaseWithRem := vysl;
   end;
 
   function moduloDec(c1: cisloT; var c2: cisloT): cisloT;
@@ -1023,8 +1108,10 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     t, n, i: integer;
   var
     q, tempInt: int64;
-  var normalizeQuot : longint;
-  var normalizationUsed : boolean;
+  var
+    normalizeQuot: longint;
+  var
+    normalizationUsed: boolean;
 
   begin
     if (c2.delka = 0) then
@@ -1036,17 +1123,15 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     init2(temp);
     init2(norm);
     normalizeQuot := 1;
-    normalizationUsed := false;
-    vypisCisloBase(c1, true, 'c1');
-    vypisCisloBase(c2, true, 'c2');
-    if(c2.cislo[c2.delka] < BASE_HALF) then
+    normalizationUsed := False;
+    if (c2.cislo[c2.delka] < BASE_HALF) then
     begin
-         normalizeQuot := (BASE_HALF div c2.cislo[c2.delka]) + 1;
-         normalizationUsed := true;
-         norm.delka := 1;
-         norm.cislo[1] := normalizeQuot;
-         c1 := vynasobBase(c1, norm);
-         c2 := vynasobBase(c2, norm);
+      normalizeQuot := (BASE_HALF div c2.cislo[c2.delka]) + 1;
+      normalizationUsed := True;
+      norm.delka := 1;
+      norm.cislo[1] := normalizeQuot;
+      c1 := vynasobBase(c1, norm);
+      c2 := vynasobBase(c2, norm);
     end;
     n := c1.delka - 1;
     t := c2.delka - 1;
@@ -1080,9 +1165,9 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
         c1 := odectiBase(vynasobene, c1);
       end;
     end;
-    if(normalizationUsed and (c1.delka <> 0)) then
+    if (normalizationUsed and (c1.delka <> 0)) then
     begin
-         c1 := vydelBase(c1, norm);
+      c1 := vydelBase(c1, norm);
     end;
     moduloBase := c1;
   end;
@@ -1144,6 +1229,29 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     end;
     factor := vyslF;
   end;
+  // factors of p-1 (even)
+  function factor2(var p: cisloLT): vysledekFaktorizace2;
+  var
+    vyslF: vysledekFaktorizace2;
+  var
+    vyslD: vysledekDeleniBase;
+  begin
+    init2(vyslD.rem);
+    init2(vyslD.quot);
+    init2(vyslF.zbytek);
+    vyslF.exponent := 0;
+    vyslF.zbytek := p;
+    vyslF.zbytek.cislo[1] :=
+      vyslF.zbytek.cislo[1] - 1;
+    vyslD := vydelBaseWithRem(vyslF.zbytek, DVA);
+    while ((vyslD.rem.delka = 0) and (vyslD.quot.delka > 0)) do
+    begin
+      Inc(vyslF.exponent);
+      vyslF.zbytek := vyslD.quot;
+      vyslD := vydelBaseWithRem(vyslD.quot, DVA);
+    end;
+    factor2 := vyslF;
+  end;
 
   function squareDec(var c1: cisloT): cisloT;
   var
@@ -1201,12 +1309,12 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     squareBase := vysl;
   end;
 
-  function modular_pow(var base: cisloLT; exponent: cisloT;
+  function modular_pow(var base: cisloLT; exponent: cisloLT;
   var modulus: cisloLT): cisloLT;
   var
-    vysledek, dva, temp: cisloLT;
+    vysledek, temp: cisloLT;
   var
-    tempDeleni: vysledekDeleniDvema;
+    tempDeleni: vysledekDeleniBase;
   begin
     init2(vysledek);
     if ((modulus.delka = 1) and (modulus.cislo[1] = 1)) then
@@ -1214,24 +1322,23 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
       modular_pow := vysledek;
       exit;
     end;
-    init2(dva);
     init2(temp);
     vysledek.delka := 1;
     vysledek.cislo[1] := 1;
-    init(tempDeleni.vysl);
+    init2(tempDeleni.quot);
+    init2(tempDeleni.rem);
     //base := moduloBase(base, modulus);
     while exponent.delka > 0 do
     begin
-      exponent := otocCisloDec(exponent);
-      tempDeleni := vydelDvema(exponent);
-      if (tempDeleni.zbytek = 1) then
+      tempDeleni := vydelBaseWithRem(exponent, DVA);
+      if (tempDeleni.rem.delka = 1) then
       begin
         temp := vynasobBase(vysledek, base);
         vysledek := moduloBase(temp, modulus);
       end;
       temp := squareBase(base);
       base := moduloBase(temp, modulus);
-      exponent := otocCisloDec(tempDeleni.vysl);
+      exponent := tempDeleni.quot;
     end;
     modular_pow := vysledek;
   end;
@@ -1339,6 +1446,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     end;
     dumbCheck := True;
   end;
+
    {
   function modInverse(a, m: cisloT): cisloT;
   var
@@ -1422,58 +1530,50 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     writeln(f, '');
   end;
 
-  function isPrime(var p: cisloT; k: byte): boolean;
+  function isPrime(var p: cisloLT; k: byte): boolean;
   var
-    nahodne, pMensi, otoceneP: cisloT;
-  var
-    nahodneBase, pMensiBase, x, otocenePBase: cisloLT;
+    nahodneBase, pMensiBase, x: cisloLT;
   var
     i, j: integer;
   var
     pokracuj: boolean;
   var
-    faktory: vysledekFaktorizace;
+    faktory: vysledekFaktorizace2;
   var
     FromTime, ToTime: TDateTime;
 
   begin
-    init(otoceneP);
-    init2(otocenePBase);
-    otoceneP := otocCisloDec(p); //necitelne
-    otocenePBase := convertFromDec(otoceneP);
     if (p.delka > 4) then
     begin
-      if (dumbCheck(otocenePBase) = False) then
+      if (dumbCheck(p) = False) then
         exit(False);
     end;
-    init(nahodne);
-    init(pMensi);
     init2(nahodneBase);
     init2(pMensiBase);
     init2(x);
-    init(faktory.zbytek);
+    init2(faktory.zbytek);
     faktory.exponent := 0;
-    faktory := factor(p);
-    faktory.zbytek := otocCisloDec(faktory.zbytek);
-    pMensiBase := otocenePBase;
+    faktory := factor2(p);
+    pMensiBase := p;
     pMensiBase.cislo[1] := pMensiBase.cislo[1] - 1;
     for i := 1 to k do
     begin
       pokracuj := False;
       nahodneBase := generujNahodneCisloMensiNez(pMensiBase);
       FromTime := Now;
-      x := modular_pow(nahodneBase, faktory.zbytek, otocenePBase);
+      x := modular_pow(nahodneBase, faktory.zbytek, p);
       ToTime := Now;
       pocetExp := pocetExp + 1;
       celkemMs := celkemMs + MilliSecondsBetween(FromTime, ToTime);
-      if (((x.delka = 1) and (x.cislo[1] = 1)) or (porovnaniBase(pMensiBase, x) = 0)) then
+      if (((x.delka = 1) and (x.cislo[1] = 1)) or
+        (porovnaniBase(pMensiBase, x) = 0)) then
       begin
-        writeln('passed ', i, '. test');
+        //writeln('passed ', i, '. test');
         Continue;
       end;
       for j := 1 to (faktory.exponent - 1) do
       begin
-        x := moduloBase(squareBase(x), otocenePBase);
+        x := moduloBase(squareBase(x), p);
         if ((x.delka = 1) and (x.cislo[1] = 1)) then
         begin
           exit(False);
@@ -1488,10 +1588,8 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
       begin
         exit(False);
       end;
-      writeln('passed ', i, '. test');
+      //writeln('passed ', i, '. test');
     end;
-    writeln;
-    vypisCisloDec(p, True, 'je prvocislo ');
     isPrime := True;
   end;
 
@@ -1508,7 +1606,7 @@ var
 var
   vystup: Text;
 var
-  test, test2, res, remainder: cisloLT;
+  otocenePBase, test, test2, res, remainder: cisloLT;
 var
   del: vysledekDeleniBase;
 var
@@ -1532,6 +1630,10 @@ begin
   prazdneCislo2.isNegative := False;
   prazdneCislo2.delka := 0;
 
+  DVA := prazdneCislo2;
+  DVA.delka := 1;
+  DVA.cislo[1] := 2;
+
   Randomize;
   Assign(vystup, VYSTUPNI_SOUBOR);
   Write('Kolik cifer: ');
@@ -1550,27 +1652,28 @@ begin
     while generuj do
     begin
       Inc(pocetPokusu);
-      Write(pocetPokusu, ' ');
       p := generujPrvocislo(pocetCifer);
       vynuluj(p);
-      if (isPrime(p, PRESNOST) = True) then
+      otocenePBase := convertFromDec(otocCisloDec(p));
+      if (isPrime(otocenePBase, PRESNOST) = True) then
       begin
         generuj := False;
         ToTime := Now;
-        Writeln('Pocet otestovanych cisel: ', pocetPokusu);
+        //Writeln('Pocet otestovanych cisel: ', pocetPokusu);
         diffCas := MilliSecondsBetween(ToTime, FromTime);
-        Writeln('Generovani prvocisla trvalo: ', diffCas, ' ms');
+        //Writeln('Generovani prvocisla trvalo: ', diffCas, ' ms');
+        //vypisCisloDec(p, True, 'je prvocislo ');
         if (prumernyCas = 0) then
           prumernyCas := diffCas
         else
           prumernyCas := (prumernyCas + diffCas) / 2;
         zapisCisloDoSouboru(vystup, p);
-        pocetPokusu := 0;
+        //pocetPokusu := 0;
       end;
     end;
   end;
 
-  writeln('Vygenerovano ', pocetPrvocisel, ' prvocisel delky ', pocetCifer, '.');
+  writeln('Vygenerovano ', pocetPrvocisel, ' prvocisel delky ', pocetCifer, '. Vyzkouseno ', pocetPokusu, ' cisel');
   writeln('Prumerna doba generovani jednoho prvocisla: ', prumernyCas: 9: 0, ' ms');
   writeln('Prumerny exp cas: ', (celkemMs / pocetExp): 9: 0, ' ms');
   Close(vystup);
