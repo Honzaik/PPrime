@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <Compiler Value="/usr/bin/fpc" Date="1491731098"/>
-  <Params Value=" -MObjFPC -Scghi -Cg -Cro -O1 -l -vewnhibq -Fi/home/honza/PPrime/lib/x86_64-linux -Fu/home/honza/PPrime/ -FU/home/honza/PPrime/lib/x86_64-linux/ pprime.lpr"/>
+  <Params Value=" -MObjFPC -Scaghi -Cg -CirotR -Os4 -l -vewnhibq -Fi/home/honzaik/PPrime/lib/x86_64-linux -Fu/home/honzaik/PPrime/ -FU/home/honzaik/PPrime/lib/x86_64-linux/ pprime.lpr"/>
 </CONFIG>
