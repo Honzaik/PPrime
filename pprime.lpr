@@ -6,32 +6,32 @@ uses
 
 const
   MAX_DELKA_DEC = 200;
-  MAX_DELKA_BASE = 80;
+  MAX_DELKA_BASE = 64;
   POCET_MALYCH_PRVOCISEL = 998;
   VYSTUPNI_SOUBOR = 'vystup.txt';
   PRESNOST = 40;
   BASE = 2097151;
   BASE_HALF = 1048575;
 type
-  dlouheCislo = array [0..MAX_DELKA_DEC] of byte;
+  decCislo = array [0..MAX_DELKA_DEC] of byte;
 
 type
-  dCislo = array [0..MAX_DELKA_BASE] of longint;
+  baseCislo = array [0..MAX_DELKA_BASE] of longint;
 type
   cisloT = record
-    cislo: dlouheCislo;
+    cislo: decCislo;
     delka: integer;
     isNegative: boolean;
   end;
 
 type
   cisloLT = record
-    cislo: dCislo;
+    cislo: baseCislo;
     delka: integer;
     isNegative: boolean;
   end;
 type
-  vysledekFaktorizace2 = record
+  vysledekFaktorizace = record
     exponent: integer;
     zbytek: cisloLT;
   end;
@@ -305,7 +305,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
         Random(horniHranice.cislo[horniHranice.delka]) + 1;
       for i := 1 to nahodneCislo.delka - 1 do
       begin
-        nahodneCislo.cislo[i] := Random(2097151);
+        nahodneCislo.cislo[i] := Random(BASE);
       end;
     until ((porovnaniBase(horniHranice, nahodneCislo) = 1) and
         ((nahodneCislo.delka > 1) or (nahodneCislo.cislo[1] > 1)));
@@ -944,9 +944,9 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
   end;
 
   // factors of p-1 (even)
-  function factor(var p: cisloLT): vysledekFaktorizace2;
+  function factor(var p: cisloLT): vysledekFaktorizace;
   var
-    vyslF: vysledekFaktorizace2;
+    vyslF: vysledekFaktorizace;
   var
     vyslD: vysledekDeleniBase;
   begin
@@ -1129,7 +1129,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
   var
     pokracuj: boolean;
   var
-    faktory: vysledekFaktorizace2;
+    faktory: vysledekFaktorizace;
   var
     FromTime, ToTime: TDateTime;
 
