@@ -886,7 +886,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
       writeln('DELENI NULOU');
       halt(1);
     end;
-    if(porovnaniBase(c1,c2) = 2) then
+    if (porovnaniBase(c1, c2) = 2) then
     begin
       exit(c1);
     end;
@@ -994,8 +994,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     squareBase := vysl;
   end;
 
-  function modular_pow(base: cisloLT; exponent: cisloLT;
-  var modulus: cisloLT): cisloLT;
+  function modular_pow(base: cisloLT; exponent: cisloLT; var modulus: cisloLT): cisloLT;
   var
     vysledek, temp: cisloLT;
   var
@@ -1021,7 +1020,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
         vysledek := moduloBase(temp, modulus);
       end;
       exponent := tempDeleni.quot;
-      if(exponent.delka > 0) then
+      if (exponent.delka > 0) then
       begin
         temp := squareBase(base);
         base := moduloBase(temp, modulus);
@@ -1240,7 +1239,7 @@ begin
     while generuj do
     begin
       Inc(pocetPokusu);
-      write(pocetPokusu, ' ');
+      Write(pocetPokusu, ' ');
       p := generujPrvocislo(pocetCifer);
       vynuluj(p);
       otocenePBase := convertFromDec(otocCisloDec(p));
@@ -1262,7 +1261,8 @@ begin
     end;
   end;
   writeln;
-  writeln('Vygenerovano ', pocetPrvocisel, ' prvocisel delky ', pocetCifer, '. Vyzkouseno ', pocetPokusu, ' cisel');
+  writeln('Vygenerovano ', pocetPrvocisel, ' prvocisel delky ', pocetCifer,
+    '. Vyzkouseno ', pocetPokusu, ' cisel');
   writeln('Prumerna doba generovani jednoho prvocisla: ', prumernyCas: 9: 0, ' ms');
   writeln('Prumerny exp cas: ', (celkemMs / pocetExp): 9: 0, ' ms');
   Close(vystup);
