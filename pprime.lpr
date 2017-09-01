@@ -9,7 +9,7 @@ const
   MAX_DELKA_BASE = 80;
   POCET_MALYCH_PRVOCISEL = 998;
   VYSTUPNI_SOUBOR = 'vystup.txt';
-  PRESNOST = 5;
+  PRESNOST = 40;
   BASE = 2097151;
   BASE_HALF = 1048575;
 type
@@ -994,7 +994,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     squareBase := vysl;
   end;
 
-  function modular_pow(var base: cisloLT; exponent: cisloLT;
+  function modular_pow(base: cisloLT; exponent: cisloLT;
   var modulus: cisloLT): cisloLT;
   var
     vysledek, temp: cisloLT;
@@ -1020,9 +1020,12 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
         temp := vynasobBase(vysledek, base);
         vysledek := moduloBase(temp, modulus);
       end;
-      temp := squareBase(base);
-      base := moduloBase(temp, modulus);
       exponent := tempDeleni.quot;
+      if(exponent.delka > 0) then
+      begin
+        temp := squareBase(base);
+        base := moduloBase(temp, modulus);
+      end;
     end;
     modular_pow := vysledek;
   end;
