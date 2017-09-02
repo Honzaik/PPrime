@@ -40,7 +40,6 @@ type
     quot: cisloT;
     rem: cisloT;
   end;
-
 type
   vysledekDeleniBase = record
     quot: cisloLT;
@@ -216,13 +215,13 @@ var
     lichaCisla: array[1..4] of byte = (1, 3, 7, 9);
   begin
     init(p);
-    p.cislo[1] := Random(9) + 1;
-    for i := 2 to delka do
+    p.cislo[delka] := Random(9) + 1;
+    for i := delka-1 downto 1 do
     begin
-      if (i <> delka) then
+      if (i <> 1) then
         p.cislo[i] := Random(10)
       else
-        p.cislo[delka] := lichaCisla[Random(4) + 1];
+        p.cislo[1] := lichaCisla[Random(4) + 1];
     end;
     p.delka := delka;
     generujPrvocislo := p;
@@ -310,23 +309,6 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     until ((porovnaniBase(horniHranice, nahodneCislo) = 1) and
         ((nahodneCislo.delka > 1) or (nahodneCislo.cislo[1] > 1)));
     generujNahodneCisloMensiNez := nahodneCislo;
-  end;
-
-  function otocCisloDec(c: cisloT): cisloT;
-  var
-    zac, kon, temp: integer;
-  begin
-    zac := 1;
-    kon := c.delka;
-    while (zac < kon) do
-    begin
-      temp := c.cislo[zac];
-      c.cislo[zac] := c.cislo[kon];
-      c.cislo[kon] := temp;
-      Inc(zac);
-      kon := kon - 1;
-    end;
-    otocCisloDec := c;
   end;
 
   function sectiDecVar(var c1, c2: cisloT): cisloT;
@@ -1116,7 +1098,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     i: integer;
   begin
     append(f);
-    for i := 1 to c.delka do
+    for i := c.delka downto 1 do
       Write(f, c.cislo[i]);
     writeln(f, '');
   end;
@@ -1242,7 +1224,7 @@ begin
       Write(pocetPokusu, ' ');
       p := generujPrvocislo(pocetCifer);
       vynuluj(p);
-      otocenePBase := convertFromDec(otocCisloDec(p));
+      otocenePBase := convertFromDec(p);
       if (isPrime(otocenePBase, PRESNOST) = True) then
       begin
         generuj := False;
