@@ -180,22 +180,6 @@ var
 var
   BASE_CISLO_DEC: cisloT;
 
-  procedure vynuluj(var c: cisloT);
-  var
-    i: integer;
-  begin
-    for i := (c.delka + 1) to MAX_DELKA_DEC do
-      c.cislo[i] := 0;
-  end;
-
-  procedure vynuluj2(var c: cisloLT);
-  var
-    i: integer;
-  begin
-    for i := (c.delka + 1) to MAX_DELKA_BASE do
-      c.cislo[i] := 0;
-  end;
-
   procedure init(var c: cisloT);
   begin
     c := prazdneCislo;
@@ -216,7 +200,7 @@ var
   begin
     init(p);
     p.cislo[delka] := Random(9) + 1;
-    for i := delka-1 downto 1 do
+    for i := delka - 1 downto 1 do
     begin
       if (i <> 1) then
         p.cislo[i] := Random(10)
@@ -460,7 +444,6 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
       c1.cislo[i] := 0;
     end;
     c1.delka := c1.delka + kolikrat;
-    vynuluj(c1);
     vynasobDeseti := c1;
   end;
 
@@ -485,7 +468,6 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
       c1.cislo[i] := 0;
     end;
     c1.delka := c1.delka + kolikrat;
-    vynuluj2(c1);
     shiftLeft := c1;
   end;
 
@@ -1223,7 +1205,6 @@ begin
       Inc(pocetPokusu);
       Write(pocetPokusu, ' ');
       p := generujPrvocislo(pocetCifer);
-      vynuluj(p);
       otocenePBase := convertFromDec(p);
       if (isPrime(otocenePBase, PRESNOST) = True) then
       begin
