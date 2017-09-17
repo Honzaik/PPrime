@@ -1,53 +1,51 @@
-program pprime;
+program project1;
 
 uses
   DateUtils,
   SysUtils;
 
 const
-  MAX_DELKA_DEC = 200;
-  MAX_DELKA_BASE = 64;
+  MAX_DELKA_DEC = 200; //maximalni pocet cifer v desitkove soustave
+  MAX_DELKA_BASE = 64; //maximalni pocet cifer v BASE soustave
   POCET_MALYCH_PRVOCISEL = 998;
   VYSTUPNI_SOUBOR = 'vystup.txt';
-  PRESNOST = 40;
-  BASE = 2097151;
-  BASE_HALF = 1048575;
+  PRESNOST = 40; //parametr algoritmu Miller-Rabin
+  BASE = 2097151; //zaklad ciselne soustavy
+  BASE_HALF = 1048575; //polovina zakladu - pouziva se pri normalizaci v algoritmu pro deleni
 type
   decCislo = array [0..MAX_DELKA_DEC] of byte;
-
 type
   baseCislo = array [0..MAX_DELKA_BASE] of longint;
-type
+type //typ pro cislo v desitkove soustave
   cisloT = record
     cislo: decCislo;
     delka: integer;
     isNegative: boolean;
   end;
-
-type
+type //typ pro cislo v BASE soustave
   cisloLT = record
     cislo: baseCislo;
     delka: integer;
     isNegative: boolean;
   end;
-type
+type //typ pro vysledek pri faktorizaci na nasobky 2
   vysledekFaktorizace = record
-    exponent: integer;
+    exponent: integer; //exponent u 2
     zbytek: cisloLT;
   end;
-type
+type //typ pro vysledek deleni v desitkove soustave
   vysledekDeleniDec = record
     quot: cisloT;
     rem: cisloT;
   end;
-type
+type //typ pro vysledek deleni v BASE soustave
   vysledekDeleniBase = record
     quot: cisloLT;
     rem: cisloLT;
   end;
 var
-  prazdneCislo: cisloT;
-  prazdneCislo2, DVA: cisloLT;
+  prazdneCislo: cisloT; //promena pouzivajici se pro inicializaci promenych typu cisloT
+  prazdneCislo2, DVA: cisloLT; //-||- DVA je obycejne cislo 2 akorat typu cisloLT
 var
   malaPrvocisla: array[1..POCET_MALYCH_PRVOCISEL] of cisloLT;
 var
@@ -179,7 +177,7 @@ var
   celkemMs, pocetExp: longint;
 var
   BASE_CISLO_DEC: cisloT;
-
+  //inicializace promenych na nulu
   procedure init(var c: cisloT);
   begin
     c := prazdneCislo;
@@ -189,7 +187,7 @@ var
   begin
     c := prazdneCislo2;
   end;
-
+  //funkce vygeneruje mozne prvocislo v desitkove soustave, ktere ma "delka" cifer
   function generujPrvocislo(delka: byte): cisloT;
   var
     p: cisloT;
@@ -211,12 +209,13 @@ var
     generujPrvocislo := p;
   end;
 
-{
-1 : c1>c2
-0 : c1=c2
-2 : c1<c2
-musí byt ve formatu ze na cislo[1] je nejmensi cifra
-}
+  {
+  porovnani cisel v reprezentaci jako cisloT
+  1 : c1>c2
+  0 : c1=c2
+  2 : c1<c2
+  musí byt ve formatu ze na cislo[1] je nejmensi cifra
+  }
   function porovnaniDec(var c1, c2: cisloT): byte;
   var
     i: integer;
@@ -244,7 +243,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
       end;
     end;
   end;
-
+  //stejna funkce jako vyse akorat pro typ cisloLT
   function porovnaniBase(var c1, c2: cisloLT): byte;
   var
     i: integer;
@@ -274,7 +273,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
       end;
     end;
   end;
-  //2<=n<hodniHranice
+  //vygeneruje cislo typu LT pro ktere plati 2<=n<hodniHranice
   function generujNahodneCisloMensiNez(var horniHranice: cisloLT): cisloLT;
   var
     i: integer;
@@ -294,7 +293,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
         ((nahodneCislo.delka > 1) or (nahodneCislo.cislo[1] > 1)));
     generujNahodneCisloMensiNez := nahodneCislo;
   end;
-
+  //scitani dvou cisel typu cisloT, rychlejsi, jelikoz parametr predava referenci
   function sectiDecVar(var c1, c2: cisloT): cisloT;
   var
     vysledek: cisloT;
@@ -326,7 +325,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
       vysledek.delka := delka;
     sectiDecVar := vysledek;
   end;
-
+  //viz vyse akorat pro cisloLT
   function sectiBaseVar(var c1, c2: cisloLT): cisloLT;
   var
     vysledek: cisloLT;
@@ -358,7 +357,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
       vysledek.delka := delka;
     sectiBaseVar := vysledek;
   end;
-
+  //funkce pro vynasobeni 2 cisel typu cisloT
   function vynasobDec(var c1, c2: cisloT): cisloT;
   var
     vysl: cisloT;
@@ -389,7 +388,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     vysl.isNegative := c1.isNegative xor c2.isNegative;
     vynasobDec := vysl;
   end;
-
+  //-||- akorat typ LT
   function vynasobBase(var c1, c2: cisloLT): cisloLT;
   var
     vysl: cisloLT;
@@ -423,7 +422,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     vysl.isNegative := c1.isNegative xor c2.isNegative;
     vynasobBase := vysl;
   end;
-
+  //funkce pro vynasobeni cisla typu cisloT 10 na "kolikratou". je to pouze posun elementu v poli
   function vynasobDeseti(c1: cisloT; kolikrat: integer): cisloT;
   var
     i: integer;
@@ -446,9 +445,8 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     c1.delka := c1.delka + kolikrat;
     vynasobDeseti := c1;
   end;
-
+  //obdoba vynasobDeseti akorat pro cisloLT.
   function shiftLeft(c1: cisloLT; kolikrat: integer): cisloLT;
-    {dolni jsou nejmensi <=> citelnyFormat = false}
   var
     i: integer;
   begin
@@ -470,7 +468,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     c1.delka := c1.delka + kolikrat;
     shiftLeft := c1;
   end;
-
+  //lepsi modulus pro zaporna cisla -1 mod 10 = 9. Pascal vraci normalne -1
   function betterMod(i, modulus: int64): longint;
   var
     temp: int64;
@@ -480,7 +478,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
       temp := temp + modulus;
     betterMod := temp;
   end;
-
+  //funkce pro rozdil (c1-c2) dvou cisel typu cisloT
   function odectiDec(var c1, c2: cisloT): cisloT;
   var
     vysledek, temp: cisloT;
@@ -548,7 +546,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
 
     odectiDec := vysledek;
   end;
-
+  //stejne, akorat pro cisloLT
   function odectiBase(var c1, c2: cisloLT): cisloLT;
   var
     vysledek, temp: cisloLT;
@@ -610,7 +608,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     end;
     odectiBase := vysledek;
   end;
-
+  //funkce vraci celociselny koeficient pri deleni c1/c2
   function vydelDec(var c1, c2: cisloT): vysledekDeleniDec;
   var
     vysl: vysledekDeleniDec;
@@ -678,7 +676,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     end;
     vydelDec := vysl;
   end;
-
+  //obdoba pro cisloLT
   function vydelBase(c1, c2: cisloLT): cisloLT;
   var
     vysl, vynasobene, temp, norm: cisloLT;
@@ -753,7 +751,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     end;
     vydelBase := vysl;
   end;
-
+  //funkce pro deleni cisel typu cisloLT. vraci celociselny koeficient i zbytek
   function vydelBaseWithRem(var c1: cisloLT; c2: cisloLT): vysledekDeleniBase;
   var
     vysl: vysledekDeleniBase;
@@ -831,8 +829,8 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     end;
     vydelBaseWithRem := vysl;
   end;
-
-  function moduloBase(c1: cisloLT; c2: cisloLT): cisloLT;
+  //funkce vraci zbytek po celociselnem deleni dvou cisel typu cisloLT
+  function moduloBase(c1, c2: cisloLT): cisloLT;
   var
     vynasobene, temp, norm: cisloLT;
   var
@@ -907,7 +905,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     moduloBase := c1;
   end;
 
-  // factors of p-1 (even)
+  // vraci faktory 2 u cisla (p-1)
   function factor(var p: cisloLT): vysledekFaktorizace;
   var
     vyslF: vysledekFaktorizace;
@@ -930,7 +928,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
 
     factor := vyslF;
   end;
-
+  //funkce "nadruhou". rychlejsi nez obycejne nasobeni
   function squareBase(var c1: cisloLT): cisloLT;
   var
     vysl: cisloLT;
@@ -957,7 +955,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
       vysl.delka := c1.delka * 2 - 1;
     squareBase := vysl;
   end;
-
+  //funkce pro modularni umocnovani
   function modular_pow(base: cisloLT; exponent: cisloLT; var modulus: cisloLT): cisloLT;
   var
     vysledek, temp: cisloLT;
@@ -992,7 +990,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     end;
     modular_pow := vysledek;
   end;
-
+  //funkce prevadi cislo zapsane ve stringu do typu cisloT
   function stringToCislo(s: string): cisloT;
   var
     i: integer;
@@ -1010,7 +1008,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     end;
     stringToCislo := vysl;
   end;
-
+  //funkce prevadi cislo typu cisloT na longint (predpoklada se ze se vejde do longintu)
   function getLongInt(c: cisloT): longint;
   var
     vysl: longint;
@@ -1024,7 +1022,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     end;
     getLongInt := vysl;
   end;
-
+  //prevadi cislo z cisloT do cisloLT
   function convertFromDec(c: cisloT): cisloLT;
   var
     newC: cisloLT;
@@ -1050,8 +1048,8 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     end;
     convertFromDec := newC;
   end;
-
-  procedure loadPrimes;  //v necitelnem formatu
+  //nacita prvocisla ze stringu do cisloLT pro prvotni kontrolu delitelnosti
+  procedure loadPrimes;
   var
     i: integer;
   begin
@@ -1060,7 +1058,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
       malaPrvocisla[i] := convertFromDec(stringToCislo(malaPrvocislaString[i]));
     end;
   end;
-
+  //kontroluje zda cislo p neni delitelne jednim z malych prvocisel
   function primitiveCheck(var p: cisloLT): boolean;
   var
     i: integer;
@@ -1074,7 +1072,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     end;
     primitiveCheck := True;
   end;
-
+  //zapisuje cisloT (prvocislo) do vystupniho souboru
   procedure zapisCisloDoSouboru(var f: Text; var c: cisloT);
   var
     i: integer;
@@ -1084,7 +1082,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
       Write(f, c.cislo[i]);
     writeln(f, '');
   end;
-
+  //hlavni funkce, ktera testuje zda je p prvocislo (hlavne algoritmus Miller-Rabin). k znaci pocet iteraci v algoritmu Miller-Rabin
   function isPrime(var p: cisloLT; k: byte): boolean;
   var
     nahodneBase, pMensiBase, x: cisloLT;
@@ -1123,7 +1121,6 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
       if (((x.delka = 1) and (x.cislo[1] = 1)) or
         (porovnaniBase(pMensiBase, x) = 0)) then
       begin
-        //writeln('passed ', i, '. test');
         Continue;
       end;
       for j := 1 to (faktory.exponent - 1) do
@@ -1143,7 +1140,6 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
       begin
         exit(False);
       end;
-      //writeln('passed ', i, '. test');
     end;
     isPrime := True;
   end;
@@ -1189,6 +1185,11 @@ begin
   Assign(vystup, VYSTUPNI_SOUBOR);
   Write('Kolik cifer: ');
   readln(pocetCifer);
+  if ((pocetCifer < 2) or (pocetCifer > 200)) then
+  begin
+    writeln('Pocet cifer neni v povolenem rozmezi.');
+    exit;
+  end;
   Write('Kolik ruznych prvocisel: ');
   readln(pocetPrvocisel);
   loadPrimes();
@@ -1196,6 +1197,7 @@ begin
   prumernyCas := 0;
 
   rewrite(vystup);
+  Writeln('Zacinam generovat');
   for i := 1 to pocetPrvocisel do
   begin
     FromTime := Now;
@@ -1203,23 +1205,18 @@ begin
     while generuj do
     begin
       Inc(pocetPokusu);
-      Write(pocetPokusu, ' ');
       p := generujPrvocislo(pocetCifer);
       otocenePBase := convertFromDec(p);
       if (isPrime(otocenePBase, PRESNOST) = True) then
       begin
         generuj := False;
         ToTime := Now;
-        //Writeln('Pocet otestovanych cisel: ', pocetPokusu);
         diffCas := MilliSecondsBetween(ToTime, FromTime);
-        //Writeln('Generovani prvocisla trvalo: ', diffCas, ' ms');
-        //vypisCisloDec(p, True, 'je prvocislo ');
         if (prumernyCas = 0) then
           prumernyCas := diffCas
         else
           prumernyCas := (prumernyCas + diffCas) / 2;
         zapisCisloDoSouboru(vystup, p);
-        //pocetPokusu := 0;
       end;
     end;
   end;
@@ -1227,6 +1224,6 @@ begin
   writeln('Vygenerovano ', pocetPrvocisel, ' prvocisel delky ', pocetCifer,
     '. Vyzkouseno ', pocetPokusu, ' cisel');
   writeln('Prumerna doba generovani jednoho prvocisla: ', prumernyCas: 9: 0, ' ms');
-  writeln('Prumerny exp cas: ', (celkemMs / pocetExp): 9: 0, ' ms');
+  writeln('Prumerna doba modularniho umocnovani jednoho cisla: ', (celkemMs / pocetExp): 9: 0, ' ms');
   Close(vystup);
 end.
