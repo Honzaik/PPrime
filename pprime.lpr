@@ -1061,7 +1061,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
     end;
   end;
 
-  function dumbCheck(var p: cisloLT): boolean;
+  function primitiveCheck(var p: cisloLT): boolean;
   var
     i: integer;
   begin
@@ -1072,7 +1072,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
         exit(False);
       end;
     end;
-    dumbCheck := True;
+    primitiveCheck := True;
   end;
 
   procedure zapisCisloDoSouboru(var f: Text; var c: cisloT);
@@ -1100,7 +1100,7 @@ musí byt ve formatu ze na cislo[1] je nejmensi cifra
   begin
     if (p.delka > 4) then
     begin
-      if (dumbCheck(p) = False) then
+      if (primitiveCheck(p) = False) then
         exit(False);
     end;
     initBase(nahodneBase);
